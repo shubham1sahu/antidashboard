@@ -3,11 +3,11 @@ import AuthRedirectRoute from './components/routing/AuthRedirectRoute';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import RoleHomeRedirect from './components/routing/RoleHomeRedirect';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
-import AdminReservationsPage from './pages/admin/AdminReservationsPage';
-import AdminTablesPage from './pages/admin/AdminTablesPage';
-import CustomerDashboardPage from './pages/customer/CustomerDashboardPage';
+import ReservationManagement from './pages/admin/ReservationManagement';
+import TableManagement from './pages/admin/TableManagement';
 import CustomerMenuPage from './pages/customer/CustomerMenuPage';
-import CustomerReservationsPage from './pages/customer/CustomerReservationsPage';
+import MyReservations from './pages/customer/MyReservations';
+import ReservePage from './pages/customer/ReservePage';
 import KitchenPage from './pages/kitchen/KitchenPage';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -30,14 +30,14 @@ function App() {
 
         <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
           <Route path="/admin" element={<AdminDashboardPage />} />
-          <Route path="/admin/tables" element={<AdminTablesPage />} />
-          <Route path="/admin/reservations" element={<AdminReservationsPage />} />
+          <Route path="/admin/tables" element={<TableManagement />} />
+          <Route path="/admin/reservations" element={<ReservationManagement />} />
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={[ROLES.CUSTOMER]} />}>
-          <Route path="/customer" element={<CustomerDashboardPage />} />
+          <Route path="/customer" element={<ReservePage />} />
           <Route path="/customer/menu" element={<CustomerMenuPage />} />
-          <Route path="/customer/reservations" element={<CustomerReservationsPage />} />
+          <Route path="/customer/reservations" element={<MyReservations />} />
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={[ROLES.KITCHEN_STAFF]} />}>
