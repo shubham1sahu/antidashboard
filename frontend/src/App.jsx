@@ -5,6 +5,7 @@ import RoleHomeRedirect from './components/routing/RoleHomeRedirect';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import ReservationManagement from './pages/admin/ReservationManagement';
 import TableManagement from './pages/admin/TableManagement';
+import MenuManagementPage from './pages/admin/MenuManagementPage';
 import CustomerMenuPage from './pages/customer/CustomerMenuPage';
 import MyReservations from './pages/customer/MyReservations';
 import ReservePage from './pages/customer/ReservePage';
@@ -32,6 +33,7 @@ function App() {
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/admin/tables" element={<TableManagement />} />
           <Route path="/admin/reservations" element={<ReservationManagement />} />
+          <Route path="/admin/menu" element={<MenuManagementPage />} />
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={[ROLES.CUSTOMER]} />}>

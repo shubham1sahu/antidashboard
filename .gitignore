@@ -36,3 +36,10 @@ frontend/.env
 .DS_Store
 Thumbs.db
 desktop.ini
+# ========================
+# Database files (IMPORTANT)
+# ========================
+backend/data/
+*.db
+*.mv.db
+*.trace.db
