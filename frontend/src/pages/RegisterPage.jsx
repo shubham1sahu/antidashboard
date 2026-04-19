@@ -128,17 +128,10 @@ function RegisterPage() {
             <input id="phone" name="phone" className="input" value={form.phone} onChange={handleChange} />
           </div>
 
-          <div>
-            <label className="label" htmlFor="roleType">Role</label>
-            <select id="roleType" name="roleType" className="input" value={form.roleType} onChange={handleChange}>
-              <option value="CUSTOMER">Customer</option>
-              <option value="ADMIN">Admin</option>
-              <option value="WAITER">Waiter</option>
-              <option value="KITCHEN_STAFF">Kitchen Staff</option>
-            </select>
-            {form.roleType !== 'CUSTOMER' ? (
-              <p className="mt-1 text-xs text-[color:var(--warning)]">Staff/Admin registration requires admin approval before production access.</p>
-            ) : null}
+          <div className="md:col-span-2">
+            <p className="mt-2 text-xs text-[color:var(--text-muted)]">
+              Note: Staff accounts (Admin, Waiter, Kitchen) must be created by an administrator.
+            </p>
           </div>
 
           {serverError ? <p className="error-text md:col-span-2">{serverError}</p> : null}

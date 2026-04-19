@@ -23,11 +23,15 @@ function WaiterPage() {
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(loadData, 10000); // Polling every 10 seconds
+    return () => clearInterval(interval);
   }, []);
+
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   const loadData = async () => {
     try {
-      setLoading(true);
+      // Don't show full loading spinner for background polls to avoid flickering
       const [tableData, orderData, menuData] = await Promise.all([
         getTables(),
         getOrders(),
@@ -36,6 +40,7 @@ function WaiterPage() {
       setTables(tableData);
       setOrders(orderData);
       setMenuItems(menuData.data);
+      setLastUpdated(new Date());
     } catch (error) {
       setToast({ type: 'error', message: 'Failed to load live data.' });
     } finally {
@@ -93,9 +98,22 @@ function WaiterPage() {
         <header className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[color:var(--border)] bg-white p-6 shadow-[var(--shadow-sm)]">
           <div>
             <h1 className="font-heading text-3xl text-[color:var(--primary)]">Waiter Screen</h1>
-            <p className="text-sm text-[color:var(--text-secondary)]">Live table service and order status overview.</p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-sm text-[color:var(--text-secondary)]">Live table service and order status overview.</p>
+              <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full uppercase font-medium">
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </span>
+            </div>
           </div>
-          <button onClick={logout} type="button" className="btn-accent">Logout</button>
+          <div className="flex gap-2">
+            <button onClick={loadData} type="button" className="btn-outline flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh
+            </button>
+            <button onClick={logout} type="button" className="btn-accent">Logout</button>
+          </div>
         </header>
 
         <section className="grid gap-6 lg:grid-cols-2">
@@ -131,6 +149,12 @@ function WaiterPage() {
                   </div>
                 </div>
               ))}
+              {!loading && tables.length === 0 && (
+                <div className="col-span-full py-12 text-center">
+                  <p className="text-[color:var(--text-secondary)]">No tables have been added yet.</p>
+                  <p className="text-xs text-[color:var(--text-secondary)] mt-1">Add tables in the Admin Dashboard to see them here.</p>
+                </div>
+              )}
             </div>
           </article>
 

@@ -105,7 +105,7 @@ public class ReservationService {
             user.setLastName("Customer");
             user.setEmail(email);
             user.setPassword("NO_PASSWORD"); // System user
-            user.setRole(Role.WALKIN_CUSTOMER);
+            user.setRole(Role.CUSTOMER);
             return userRepository.save(user);
         });
 

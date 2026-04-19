@@ -10,11 +10,11 @@ import com.rtrom.backend.exception.BadRequestException;
 import com.rtrom.backend.exception.ResourceNotFoundException;
 import com.rtrom.backend.repository.ReservationRepository;
 import com.rtrom.backend.repository.RestaurantTableRepository;
+import com.rtrom.backend.repository.OrderRepository;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.EnumSet;
 import java.util.List;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,13 +27,16 @@ public class TableService {
 
     private final RestaurantTableRepository restaurantTableRepository;
     private final ReservationRepository reservationRepository;
+    private final OrderRepository orderRepository;
 
     public TableService(
         RestaurantTableRepository restaurantTableRepository,
-        ReservationRepository reservationRepository
+        ReservationRepository reservationRepository,
+        OrderRepository orderRepository
     ) {
         this.restaurantTableRepository = restaurantTableRepository;
         this.reservationRepository = reservationRepository;
+        this.orderRepository = orderRepository;
     }
 
     public RestaurantTableResponse createTable(CreateTableRequest request) {
@@ -53,12 +56,17 @@ public class TableService {
 
     public void deleteTable(Long id) {
         RestaurantTable table = getTableEntity(id);
-        try {
-            restaurantTableRepository.delete(table);
-            restaurantTableRepository.flush();
-        } catch (DataIntegrityViolationException ex) {
-            throw new BadRequestException("Table cannot be deleted while reservations exist for it");
+        
+        if (table.getStatus() != TableStatus.AVAILABLE) {
+            throw new BadRequestException("Table can only be deleted when its status is AVAILABLE.");
         }
+
+        // Cascaded deletion of reservations and orders to maintain integrity
+        reservationRepository.deleteByTableId(id);
+        orderRepository.deleteByTableId(id);
+        
+        restaurantTableRepository.delete(table);
+        restaurantTableRepository.flush();
     }
 
     @Transactional(readOnly = true)

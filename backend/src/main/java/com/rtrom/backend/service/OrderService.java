@@ -69,6 +69,6 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+        return orderRepository.findAllWithDetails();
     }
 }

@@ -19,6 +19,8 @@
 
     <properties>
         <java.version>20</java.version>
+        <maven.compiler.source>20</maven.compiler.source>
+        <maven.compiler.target>20</maven.compiler.target>
     </properties>
 
     <dependencies>
@@ -98,6 +100,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <mainClass>com.rtrom.backend.RtromBackendApplication</mainClass>
                     <profiles>
                         <profile>local</profile>
                     </profiles>

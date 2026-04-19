@@ -14,3 +14,8 @@ export async function deleteUser(id) {
   const response = await apiClient.delete(`/users/${id}`);
   return response.data;
 }
+
+export async function createStaffAccount(data) {
+  const response = await apiClient.post('/users/create-staff', data);
+  return response.data;
+}
