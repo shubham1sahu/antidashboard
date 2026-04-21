@@ -24,3 +24,8 @@ export async function cancelReservation(id) {
   const response = await apiClient.put(`/reservations/${id}/cancel`);
   return response.data;
 }
+
+export async function createWalkIn(payload) {
+  const response = await apiClient.post('/reservations/walk-in', payload);
+  return response.data;
+}

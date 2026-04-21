@@ -4,15 +4,18 @@ import com.rtrom.backend.domain.model.Reservation;
 import com.rtrom.backend.domain.model.ReservationStatus;
 import com.rtrom.backend.domain.model.RestaurantTable;
 import com.rtrom.backend.domain.model.TableStatus;
+import com.rtrom.backend.domain.model.Role;
 import com.rtrom.backend.domain.model.User;
 import com.rtrom.backend.dto.reservation.CreateReservationRequest;
 import com.rtrom.backend.dto.reservation.ReservationResponse;
+import com.rtrom.backend.dto.reservation.WalkInRequest;
 import com.rtrom.backend.exception.BadRequestException;
 import com.rtrom.backend.exception.ConflictException;
 import com.rtrom.backend.exception.ResourceNotFoundException;
 import com.rtrom.backend.repository.ReservationRepository;
 import com.rtrom.backend.repository.UserRepository;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.EnumSet;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -80,6 +83,44 @@ public class ReservationService {
 
         reservation.setStatus(ReservationStatus.CONFIRMED);
         reservation.getTable().setStatus(TableStatus.RESERVED);
+        return ReservationResponse.from(reservationRepository.save(reservation));
+    }
+
+    public ReservationResponse createWalkIn(WalkInRequest request) {
+        RestaurantTable table = tableService.getTableEntity(request.getTableId());
+
+        if (table.getStatus() != TableStatus.AVAILABLE) {
+            throw new ConflictException("Table is not available for walk-in");
+        }
+
+        if (request.getGuestCount() > table.getCapacity()) {
+            throw new BadRequestException("Guest count exceeds table capacity");
+        }
+
+        // Find or create a Walk-in user
+        String email = "walkin@rtrom.com";
+        User walkInUser = userRepository.findByEmail(email).orElseGet(() -> {
+            User user = new User();
+            user.setFirstName("Walk-in");
+            user.setLastName("Customer");
+            user.setEmail(email);
+            user.setPassword("NO_PASSWORD"); // System user
+            user.setRole(Role.CUSTOMER);
+            return userRepository.save(user);
+        });
+
+        Reservation reservation = new Reservation();
+        reservation.setUser(walkInUser);
+        reservation.setTable(table);
+        reservation.setReservationDate(LocalDate.now());
+        reservation.setStartTime(LocalTime.now());
+        reservation.setEndTime(LocalTime.now().plusHours(2)); // Default 2 hours occupancy
+        reservation.setGuestCount(request.getGuestCount());
+        reservation.setSpecialRequests("Walk-in: " + (request.getCustomerName() != null ? request.getCustomerName() : "Anonymous"));
+        reservation.setStatus(ReservationStatus.CONFIRMED);
+
+        table.setStatus(TableStatus.OCCUPIED);
+
         return ReservationResponse.from(reservationRepository.save(reservation));
     }
 

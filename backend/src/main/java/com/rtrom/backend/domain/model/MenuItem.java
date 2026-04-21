@@ -20,7 +20,7 @@ public class MenuItem {
     @Column(nullable = false)
     private BigDecimal price;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @ManyToOne(fetch = FetchType.EAGER)

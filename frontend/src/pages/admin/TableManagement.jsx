@@ -3,12 +3,16 @@ import DashboardShell from '../../components/layout/DashboardShell';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ToastMessage from '../../components/ui/ToastMessage';
 import { createTable, deleteTable, getTables, updateStatus, updateTable } from '../../api/tableApi';
+import { createWalkIn } from '../../api/reservationApi';
 
 const navItems = [
   { to: '/admin', label: 'Overview', end: true },
+  { to: '/admin/analytics', label: 'Analytics' },
+  { to: '/admin/orders', label: 'Orders' },
   { to: '/admin/tables', label: 'Tables' },
   { to: '/admin/reservations', label: 'Reservations' },
   { to: '/admin/menu', label: 'Menu' },
+  { to: '/admin/users', label: 'Users' },
 ];
 
 const initialForm = {
@@ -26,6 +30,8 @@ function TableManagement() {
   const [filter, setFilter] = useState('ALL');
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState({ type: 'error', message: '' });
+  const [walkInTable, setWalkInTable] = useState(null);
+  const [walkInForm, setWalkInForm] = useState({ guestCount: 1, customerName: '' });
 
   useEffect(() => {
     loadTables();
@@ -104,6 +110,27 @@ function TableManagement() {
     }
   };
 
+  const handleWalkInInit = (table) => {
+    setWalkInTable(table);
+    setWalkInForm({ guestCount: table.capacity, customerName: '' });
+  };
+
+  const handleWalkInSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createWalkIn({
+        tableId: walkInTable.id,
+        guestCount: Number(walkInForm.guestCount),
+        customerName: walkInForm.customerName,
+      });
+      setToast({ type: 'success', message: `Walk-in confirmed for Table ${walkInTable.tableNumber}.` });
+      setWalkInTable(null);
+      await loadTables();
+    } catch (error) {
+      setToast({ type: 'error', message: extractError(error) });
+    }
+  };
+
   return (
     <DashboardShell
       title="Table Management"
@@ -111,6 +138,43 @@ function TableManagement() {
       navItems={navItems}
     >
       <ToastMessage type={toast.type} message={toast.message} onClose={() => setToast({ type: 'error', message: '' })} />
+
+      {walkInTable && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <h3 className="text-xl font-bold text-[color:var(--text-primary)]">Quick Walk-in: {walkInTable.tableNumber}</h3>
+            <p className="mt-1 text-sm text-[color:var(--text-secondary)]">Enter guest details to immediately occupy this table.</p>
+            
+            <form onSubmit={handleWalkInSubmit} className="mt-6 space-y-4">
+              <FormField label="Guest Count">
+                <input 
+                  type="number" 
+                  min="1" 
+                  max={walkInTable.capacity} 
+                  className="input" 
+                  value={walkInForm.guestCount}
+                  onChange={(e) => setWalkInForm({ ...walkInForm, guestCount: e.target.value })}
+                  required
+                />
+              </FormField>
+              <FormField label="Customer Name (Optional)">
+                <input 
+                  type="text" 
+                  className="input" 
+                  placeholder="e.g. John Doe"
+                  value={walkInForm.customerName}
+                  onChange={(e) => setWalkInForm({ ...walkInForm, customerName: e.target.value })}
+                />
+              </FormField>
+              
+              <div className="mt-8 flex gap-3">
+                <button type="submit" className="btn-accent flex-1">Confirm Walk-in</button>
+                <button type="button" className="btn-outline" onClick={() => setWalkInTable(null)}>Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <section className="grid gap-6 xl:grid-cols-[0.95fr_1.25fr]">
         <form className="rounded-2xl border border-[color:var(--border)] bg-white p-6 shadow-[var(--shadow-sm)]" onSubmit={handleSubmit}>
@@ -191,6 +255,9 @@ function TableManagement() {
 
                 <div className="mt-4 flex flex-wrap gap-3">
                   <button type="button" className="btn-outline" onClick={() => handleEdit(table)}>Edit</button>
+                  {table.status === 'AVAILABLE' && (
+                    <button type="button" className="btn-accent" onClick={() => handleWalkInInit(table)}>Walk-in</button>
+                  )}
                   <button type="button" className="btn-outline" onClick={() => handleStatusToggle(table)}>Next status</button>
                   <button type="button" className="btn-ghost" onClick={() => handleDelete(table.id)}>Delete</button>
                 </div>

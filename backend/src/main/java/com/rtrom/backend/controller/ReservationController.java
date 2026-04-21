@@ -2,6 +2,7 @@ package com.rtrom.backend.controller;
 
 import com.rtrom.backend.dto.reservation.CreateReservationRequest;
 import com.rtrom.backend.dto.reservation.ReservationResponse;
+import com.rtrom.backend.dto.reservation.WalkInRequest;
 import com.rtrom.backend.service.ReservationService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
@@ -38,6 +39,13 @@ public class ReservationController {
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(reservationService.createReservation(authentication.getName(), request));
+    }
+
+    @PostMapping("/walk-in")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAITER')")
+    public ResponseEntity<ReservationResponse> createWalkIn(@Valid @RequestBody WalkInRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(reservationService.createWalkIn(request));
     }
 
     @GetMapping("/my")

@@ -6,9 +6,12 @@ import DashboardShell from '../../components/layout/DashboardShell';
 
 const navItems = [
   { to: '/admin', label: 'Overview', end: true },
+  { to: '/admin/analytics', label: 'Analytics' },
+  { to: '/admin/orders', label: 'Orders' },
   { to: '/admin/tables', label: 'Tables' },
   { to: '/admin/reservations', label: 'Reservations' },
   { to: '/admin/menu', label: 'Menu' },
+  { to: '/admin/users', label: 'Users' },
 ];
 
 const MenuManagementPage = () => {
@@ -22,6 +25,8 @@ const MenuManagementPage = () => {
   
   const [showCategoryInput, setShowCategoryInput] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchMenuItems();
@@ -47,9 +52,20 @@ const MenuManagementPage = () => {
     setIsFormOpen(false);
   };
 
-  const handleDeleteItem = async (id) => {
-    if (window.confirm("Are you sure you want to permanently delete this menu item?")) {
-      await deleteMenuItem(id);
+  const handleDeleteClick = (item) => {
+    setItemToDelete(item);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    try {
+      setIsDeleting(true);
+      await deleteMenuItem(itemToDelete.id);
+      setItemToDelete(null);
+    } catch (err) {
+      console.error("Delete failed", err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -188,7 +204,7 @@ const MenuManagementPage = () => {
                         Edit
                       </button>
                       <button 
-                        onClick={() => handleDeleteItem(item.id)} 
+                        onClick={() => handleDeleteClick(item)} 
                         className="text-[color:var(--error)] hover:opacity-80 font-bold"
                       >
                         Delete
@@ -217,6 +233,40 @@ const MenuManagementPage = () => {
           onCancel={() => setIsFormOpen(false)}
           isLoading={isLoading}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {itemToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="mb-2 text-xl font-bold text-slate-900">Confirm Deletion</h3>
+            <p className="mb-6 text-slate-600">
+              Are you sure you want to delete <span className="font-semibold text-slate-900">{itemToDelete.name}</span>? 
+              This action cannot be undone and will permanently remove this item from your menu.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setItemToDelete(null)}
+                disabled={isDeleting}
+                className="flex-1 rounded-xl border border-slate-200 py-3 font-semibold text-slate-700 hover:bg-slate-50 transition"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="flex-1 rounded-xl bg-red-600 py-3 font-semibold text-white hover:bg-red-700 shadow-lg shadow-red-200 transition disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Item'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </DashboardShell>
   );

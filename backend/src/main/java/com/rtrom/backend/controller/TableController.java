@@ -34,7 +34,7 @@ public class TableController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAITER')")
     public ResponseEntity<List<RestaurantTableResponse>> getAllTables() {
         return ResponseEntity.ok(tableService.getAllTables());
     }
@@ -73,7 +73,7 @@ public class TableController {
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAITER')")
     public ResponseEntity<RestaurantTableResponse> updateStatus(
         @PathVariable Long id,
         @Valid @RequestBody UpdateTableStatusRequest request

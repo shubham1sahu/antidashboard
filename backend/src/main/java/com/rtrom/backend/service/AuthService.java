@@ -38,6 +38,10 @@ public class AuthService {
             throw new IllegalArgumentException("Email is already in use");
         }
 
+        if (request.role() != null && request.role() != Role.CUSTOMER) {
+            throw new IllegalArgumentException("Only CUSTOMER registration is allowed via this endpoint");
+        }
+
         Role role = request.role() == null ? Role.CUSTOMER : request.role();
 
         User user = new User();
