@@ -8,10 +8,10 @@ import kitchenApi from '../../api/kitchenApi';
 import KitchenColumn from '../../components/kitchen/KitchenColumn';
 
 const COLUMNS = [
-  { status: 'RECEIVED',    label: 'NEW' },
+  { status: 'RECEIVED', label: 'NEW' },
   { status: 'IN_PROGRESS', label: 'IN PROGRESS' },
-  { status: 'READY',       label: 'READY' },
-  { status: 'SERVED',      label: 'SERVED' },
+  { status: 'READY', label: 'READY' },
+  { status: 'SERVED', label: 'SERVED' },
 ];
 
 const NEXT_STATUS = { RECEIVED: 'IN_PROGRESS', IN_PROGRESS: 'READY', READY: 'SERVED' };
@@ -24,7 +24,7 @@ function KitchenDisplay() {
   } = useKitchenStore();
 
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [wsConnected, setWsConnected]  = useState(false);
+  const [wsConnected, setWsConnected] = useState(false);
 
   // Live clock
   useEffect(() => {
@@ -36,7 +36,7 @@ function KitchenDisplay() {
   const fetchAllTickets = useCallback(async () => {
     setLoading(true);
     try {
-      const res  = await kitchenApi.getAllTickets();
+      const res = await kitchenApi.getAllTickets();
       const data = res?.data;
       const list = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
       console.log('[KDS] API returned', list.length, 'tickets');
@@ -84,9 +84,9 @@ function KitchenDisplay() {
     }
   }, [optimisticUpdateStatus]);
 
-  const handleStart  = useCallback(makeHandler(kitchenApi.startCooking, 'RECEIVED'),    [makeHandler]);
-  const handleReady  = useCallback(makeHandler(kitchenApi.markReady,    'IN_PROGRESS'), [makeHandler]);
-  const handleServed = useCallback(makeHandler(kitchenApi.markServed,   'READY'),       [makeHandler]);
+  const handleStart = useCallback(makeHandler(kitchenApi.startCooking, 'RECEIVED'), [makeHandler]);
+  const handleReady = useCallback(makeHandler(kitchenApi.markReady, 'IN_PROGRESS'), [makeHandler]);
+  const handleServed = useCallback(makeHandler(kitchenApi.markServed, 'READY'), [makeHandler]);
 
   const dateStr = currentTime.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
   const timeStr = currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
@@ -99,7 +99,7 @@ function KitchenDisplay() {
         <div className="flex items-center gap-2.5">
           <span className="text-slate-400">
             <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-              <rect y="4" width="24" height="2" rx="1"/><rect y="11" width="24" height="2" rx="1"/><rect y="18" width="24" height="2" rx="1"/>
+              <rect y="4" width="24" height="2" rx="1" /><rect y="11" width="24" height="2" rx="1" /><rect y="18" width="24" height="2" rx="1" />
             </svg>
           </span>
           <span className="text-base">🍳</span>
@@ -111,9 +111,9 @@ function KitchenDisplay() {
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-slate-400 hidden sm:block">{dateStr}</span>
-          <div className="w-px h-5 bg-slate-700"/>
+          <div className="w-px h-5 bg-slate-700" />
           <time className="font-mono text-white tabular-nums">{timeStr}</time>
-          <div className="w-px h-5 bg-slate-700"/>
+          <div className="w-px h-5 bg-slate-700" />
           <button
             onClick={() => { useAuthStore.getState().logout(); window.location.href = '/login'; }}
             className="text-xs text-slate-400 hover:text-white transition-colors"
@@ -142,11 +142,11 @@ function KitchenDisplay() {
       {/* ══ FOOTER LEGEND ═══════════════════════════════════════ */}
       <footer className="bg-[#0b1120] border-t border-slate-800 px-5 py-2 flex items-center gap-6 text-[11px] text-slate-500 flex-shrink-0">
         <span className="flex items-center gap-1.5">
-          <svg viewBox="0 0 24 24" className="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg viewBox="0 0 24 24" className="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
           Time = Time since order placed
         </span>
         <span className="flex items-center gap-1.5">
-          <svg viewBox="0 0 24 24" className="w-3 h-3 text-red-400" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg viewBox="0 0 24 24" className="w-3 h-3 text-red-400" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
           <span className="text-red-400">Red time</span> = More than 15 mins
         </span>
         <span>Click on buttons to update order status</span>
