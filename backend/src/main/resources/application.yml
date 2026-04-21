@@ -20,14 +20,13 @@ spring:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:update}
     show-sql: ${JPA_SHOW_SQL:true}
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
         format_sql: true
+  # Flyway removed as per request
 
 app:
   jwt:
     secret: ${JWT_SECRET:change-me-to-a-strong-random-secret}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
     issuer: ${JWT_ISSUER:rtrom-backend}
-

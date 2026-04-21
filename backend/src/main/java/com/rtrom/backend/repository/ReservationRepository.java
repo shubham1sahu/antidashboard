@@ -52,6 +52,19 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     
     List<Reservation> findByUserId(Long userId);
 
+    long countByUserEmail(String email);
+
+    long countByUserEmailAndStatus(String email, ReservationStatus status);
+
+    @Query("SELECT SUM(r.guestCount) FROM Reservation r WHERE r.user.email = :email AND r.status = 'COMPLETED'")
+    Long sumGuestCountByUserEmail(@Param("email") String email);
+
+    @Query("SELECT AVG(r.guestCount) FROM Reservation r WHERE r.user.email = :email AND r.status = 'COMPLETED'")
+    Double avgGuestCountByUserEmail(@Param("email") String email);
+
+    @Query(value = "SELECT t.table_number FROM reservations r JOIN restaurant_tables t ON r.table_id = t.id WHERE r.user_id = (SELECT id FROM users WHERE email = :email) GROUP BY t.table_number ORDER BY COUNT(r.id) DESC LIMIT 1", nativeQuery = true)
+    String findFavoriteTableByUserEmail(@Param("email") String email);
+
     void deleteByTableId(Long tableId);
 
     void deleteByUserId(Long userId);
