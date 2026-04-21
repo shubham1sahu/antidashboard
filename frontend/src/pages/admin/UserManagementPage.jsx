@@ -6,6 +6,7 @@ import useAuthStore from '../../store/useAuthStore';
 
 const navItems = [
   { to: '/admin', label: 'Overview', end: true },
+  { to: '/admin/analytics', label: 'Analytics' },
   { to: '/admin/orders', label: 'Orders' },
   { to: '/admin/tables', label: 'Tables' },
   { to: '/admin/reservations', label: 'Reservations' },

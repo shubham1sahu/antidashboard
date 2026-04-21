@@ -6,6 +6,7 @@ import ToastMessage from '../../components/ui/ToastMessage';
 
 const navItems = [
   { to: '/admin', label: 'Overview', end: true },
+  { to: '/admin/analytics', label: 'Analytics' },
   { to: '/admin/orders', label: 'Orders' },
   { to: '/admin/reservations', label: 'Reservations' },
   { to: '/admin/tables', label: 'Tables' },
