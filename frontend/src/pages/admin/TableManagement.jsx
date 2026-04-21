@@ -7,6 +7,7 @@ import { createWalkIn } from '../../api/reservationApi';
 
 const navItems = [
   { to: '/admin', label: 'Overview', end: true },
+  { to: '/admin/orders', label: 'Orders' },
   { to: '/admin/tables', label: 'Tables' },
   { to: '/admin/reservations', label: 'Reservations' },
   { to: '/admin/menu', label: 'Menu' },

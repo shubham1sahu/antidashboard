@@ -34,17 +34,33 @@ public class OrderService {
         this.reservationRepository = reservationRepository;
     }
 
-    public Order createOrder(CreateOrderRequest request) {
+    public Order createOrder(CreateOrderRequest request, String userEmail) {
         RestaurantTable table = tableRepository.findById(request.tableId())
                 .orElseThrow(() -> new ResourceNotFoundException("Table not found"));
 
-        // Find the user associated with the table (the one who has an active reservation or walk-in)
-        // For simplicity, we'll look for the latest confirmed/in-progress reservation for this table
+        User currentUser = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found"));
+
+        // Find the reservation for this table today.
+        // If it's a customer, it MUST be their reservation.
+        // If it's a waiter/admin, they can place order for any active reservation on this table.
         Reservation reservation = reservationRepository.findByTableIdAndStatus(table.getId(), ReservationStatus.CONFIRMED)
-                .stream().findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("No active reservation found for this table"));
+                .stream()
+                .filter(r -> r.getReservationDate().equals(java.time.LocalDate.now()))
+                .filter(r -> {
+                    if (currentUser.getRole() == com.rtrom.backend.domain.model.Role.CUSTOMER) {
+                        return r.getUser().getId().equals(currentUser.getId());
+                    }
+                    return true;
+                })
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No active confirmed reservation found for Table " + table.getTableNumber() + " associated with you today."));
 
         User user = reservation.getUser();
+        if (currentUser.getRole() != com.rtrom.backend.domain.model.Role.CUSTOMER) {
+            // If admin/waiter is placing order, use the customer's account for billing
+            // but we might want to track who placed it. For now, following existing pattern.
+        }
 
         Order order = new Order();
         order.setTable(table);
@@ -70,5 +86,21 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<Order> getAllOrders() {
         return orderRepository.findAllWithDetails();
+    }
+
+    @Transactional
+    public Order updateOrderStatus(Long orderId, OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        order.setStatus(status);
+        return orderRepository.save(order);
+    }
+
+    @Transactional
+    public void deleteOrder(Long orderId) {
+        if (!orderRepository.existsById(orderId)) {
+            throw new ResourceNotFoundException("Order not found");
+        }
+        orderRepository.deleteById(orderId);
     }
 }

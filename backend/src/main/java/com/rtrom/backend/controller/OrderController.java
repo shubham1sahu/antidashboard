@@ -22,15 +22,28 @@ public class OrderController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'WAITER')")
-    public ResponseEntity<Order> createOrder(@Valid @RequestBody CreateOrderRequest request) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAITER', 'CUSTOMER')")
+    public ResponseEntity<Order> createOrder(@Valid @RequestBody CreateOrderRequest request, java.security.Principal principal) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(orderService.createOrder(request));
+                .body(orderService.createOrder(request, principal.getName()));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'WAITER', 'KITCHEN_STAFF')")
     public ResponseEntity<List<Order>> getAllOrders() {
         return ResponseEntity.ok(orderService.getAllOrders());
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAITER', 'KITCHEN_STAFF')")
+    public ResponseEntity<Order> updateOrderStatus(@PathVariable Long id, @RequestParam com.rtrom.backend.domain.model.OrderStatus status) {
+        return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.noContent().build();
     }
 }

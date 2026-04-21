@@ -5,8 +5,9 @@ import { getTables } from '../../api/tableApi';
 
 const navItems = [
   { to: '/admin', label: 'Overview', end: true },
-  { to: '/admin/tables', label: 'Tables' },
+  { to: '/admin/orders', label: 'Orders' },
   { to: '/admin/reservations', label: 'Reservations' },
+  { to: '/admin/tables', label: 'Tables' },
   { to: '/admin/menu', label: 'Menu' },
   { to: '/admin/users', label: 'Users' },
 ];

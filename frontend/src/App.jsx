@@ -3,6 +3,7 @@ import AuthRedirectRoute from './components/routing/AuthRedirectRoute';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import RoleHomeRedirect from './components/routing/RoleHomeRedirect';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminOrdersPage from './pages/admin/AdminOrdersPage';
 import ReservationManagement from './pages/admin/ReservationManagement';
 import TableManagement from './pages/admin/TableManagement';
 import UserManagementPage from './pages/admin/UserManagementPage';
@@ -32,6 +33,7 @@ function App() {
 
         <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
           <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/tables" element={<TableManagement />} />
           <Route path="/admin/reservations" element={<ReservationManagement />} />
           <Route path="/admin/menu" element={<MenuManagementPage />} />
