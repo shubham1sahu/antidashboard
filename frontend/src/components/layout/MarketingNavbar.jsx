@@ -20,8 +20,9 @@ function MarketingNavbar() {
             : 'border-white/20 bg-white/60 backdrop-blur-md',
         ].join(' ')}
       >
-        <Link to="/" className="font-heading text-2xl text-[color:var(--primary)]">
-          RTROM
+        <Link to="/" className="flex items-center gap-2">
+          <img src="/logo.png" alt="LuxeServe" className="h-9 w-9 object-contain" />
+          <span className="font-heading text-2xl text-[color:var(--primary)]">LuxeServe</span>
         </Link>
 
         <div className="hidden items-center gap-6 text-sm font-medium text-[color:var(--text-secondary)] md:flex">

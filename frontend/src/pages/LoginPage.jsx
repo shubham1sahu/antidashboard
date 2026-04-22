@@ -59,21 +59,21 @@ function LoginPage() {
   return (
     <main className="auth-page min-h-screen px-4 py-12 md:px-8">
       <section className="mx-auto grid w-full max-w-5xl overflow-hidden rounded-2xl border border-[color:var(--border)] bg-white shadow-[var(--shadow-lg)] md:grid-cols-[1.1fr_1fr]">
-        <aside className="hidden bg-[color:var(--primary)] p-10 text-white md:block">
-          <h1 className="font-heading text-4xl">Welcome Back</h1>
-          <p className="mt-4 text-sm text-slate-200">
-            Keep service fast and guests delighted with one command center for your whole restaurant.
+        <aside className="hidden bg-[color:var(--primary)] p-10 text-white md:flex md:flex-col md:items-center md:justify-center">
+          <img src="/logo.png" alt="LuxeServe" className="mx-auto h-28 w-28 rounded-2xl bg-white/10 object-contain p-3 shadow-lg backdrop-blur-sm" />
+          <h1 className="mt-6 text-center font-heading text-4xl">LuxeServe</h1>
+          <p className="mt-2 text-center text-xs uppercase tracking-[0.2em] text-slate-300">
+            Restaurant Table Booking &amp; Order Management
           </p>
-          <div className="mt-8 rounded-xl border border-white/20 bg-white/10 p-5 backdrop-blur-sm">
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-300">Today at a glance</p>
-            <p className="mt-3 text-2xl font-bold">42 Reservations</p>
-            <p className="mt-1 text-sm text-slate-200">8 tables waiting, 14 orders in progress</p>
-          </div>
+          <div className="mx-auto mt-8 h-px w-16 bg-white/30" />
+          <p className="mt-6 max-w-xs text-center text-sm leading-relaxed text-slate-200">
+            One elegant command center for reservations, service flow, and order execution.
+          </p>
         </aside>
 
         <div className="p-8 md:p-10">
           <h2 className="font-heading text-3xl text-[color:var(--primary)]">Log In</h2>
-          <p className="mt-2 text-sm text-[color:var(--text-secondary)]">Access your RTROM workspace.</p>
+          <p className="mt-2 text-sm text-[color:var(--text-secondary)]">Access your LuxeServe workspace.</p>
 
           <form className="mt-8 space-y-4" onSubmit={handleSubmit} noValidate>
             <div>

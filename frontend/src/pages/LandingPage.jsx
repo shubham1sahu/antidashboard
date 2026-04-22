@@ -192,7 +192,7 @@ function LandingPage() {
           <div className="mt-14 grid gap-5 md:grid-cols-3">
             {[
               {
-                quote: 'RTROM cut our table wait times by half and our staff finally feels in sync every shift.',
+                quote: 'LuxeServe cut our table wait times by half and our staff finally feels in sync every shift.',
                 name: 'Ariana Lopez',
                 restaurant: 'Cedar Bistro',
               },
@@ -227,7 +227,7 @@ function LandingPage() {
         <div className="mx-auto max-w-5xl rounded-2xl bg-[color:var(--primary)] px-6 py-12 text-center md:px-10">
           <h2 className="font-heading text-4xl text-white md:text-5xl">Ready to Transform Your Restaurant?</h2>
           <p className="mx-auto mt-4 max-w-2xl text-slate-300">
-            Launch RTROM in minutes and get your front-of-house, kitchen, and billing teams operating as one.
+            Launch LuxeServe in minutes and get your front-of-house, kitchen, and billing teams operating as one.
           </p>
           <Link to="/register" className="btn-accent mt-8 inline-flex">
             Start Free Today

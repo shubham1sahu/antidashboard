@@ -18,7 +18,10 @@ function DashboardShell({ title, subtitle, navItems, children }) {
       <div className="mx-auto grid min-h-screen max-w-7xl grid-cols-1 gap-0 md:grid-cols-[240px_1fr]">
         <aside className="border-r border-[color:var(--border)] bg-white px-4 py-6 md:px-5">
           <div className="mb-8">
-            <h1 className="font-heading text-2xl text-[color:var(--primary)]">RTROM</h1>
+            <div className="flex items-center gap-2">
+              <img src="/logo.png" alt="LuxeServe" className="h-8 w-8 object-contain" />
+              <h1 className="font-heading text-2xl text-[color:var(--primary)]">LuxeServe</h1>
+            </div>
             <p className="mt-1 text-xs tracking-wide text-[color:var(--text-muted)]">{role}</p>
           </div>
 
