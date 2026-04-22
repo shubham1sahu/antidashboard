@@ -13,8 +13,10 @@ import java.util.Optional;
 @Repository
 public interface KitchenOrderTicketRepository extends JpaRepository<KitchenOrderTicket, Long> {
 
-    List<KitchenOrderTicket> findByKitchenStatusOrderByCreatedAtAsc(KitchenTicketStatus status);
+    @Query("SELECT k FROM KitchenOrderTicket k JOIN FETCH k.order o JOIN FETCH o.table t WHERE k.kitchenStatus = :status ORDER BY k.createdAt ASC")
+    List<KitchenOrderTicket> findByKitchenStatusOrderByCreatedAtAsc(@Param("status") KitchenTicketStatus status);
 
+    @Query("SELECT k FROM KitchenOrderTicket k JOIN FETCH k.order o JOIN FETCH o.table t ORDER BY k.createdAt ASC")
     List<KitchenOrderTicket> findAllByOrderByCreatedAtAsc();
 
     Optional<KitchenOrderTicket> findByOrderId(Long orderId);

@@ -25,6 +25,7 @@ public class KitchenController {
     @PreAuthorize("hasAnyRole('ADMIN', 'KITCHEN_STAFF', 'WAITER')")
     public ResponseEntity<List<KitchenTicketResponse>> getAllTickets(
             @RequestParam(required = false) String status) {
+        System.out.println("DEBUG: KitchenController.getAllTickets called");
         return ResponseEntity.ok(kitchenService.getAllTickets(status));
     }
 
@@ -67,8 +68,10 @@ public class KitchenController {
      * Note: This path matches the original scaffold spec exactly.
      */
     @PutMapping("/tickets/{id}/served")
-    @PreAuthorize("hasAnyRole('ADMIN', 'WAITER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_WAITER', 'ROLE_KITCHEN_STAFF')")
     public ResponseEntity<KitchenTicketResponse> markServed(@PathVariable Long id) {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("DEBUG (served): User: " + auth.getName() + " Authorities: " + auth.getAuthorities());
         return ResponseEntity.ok(kitchenService.markServed(id));
     }
 
