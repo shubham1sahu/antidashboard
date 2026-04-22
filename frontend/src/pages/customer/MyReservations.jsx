@@ -9,6 +9,7 @@ const navItems = [
   { to: '/customer', label: 'Reserve', end: true },
   { to: '/customer/menu', label: 'Menu' },
   { to: '/customer/reservations', label: 'My Reservations' },
+  { to: '/customer/profile', label: 'Profile' },
 ];
 
 function MyReservations() {

@@ -10,6 +10,7 @@ import UserManagementPage from './pages/admin/UserManagementPage';
 import MenuManagementPage from './pages/admin/MenuManagementPage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import CustomerMenuPage from './pages/customer/CustomerMenuPage';
+import CustomerProfilePage from './pages/customer/CustomerProfilePage';
 import MyReservations from './pages/customer/MyReservations';
 import ReservePage from './pages/customer/ReservePage';
 import KitchenDisplay from './pages/kitchen/KitchenDisplay';
@@ -46,6 +47,7 @@ function App() {
           <Route path="/customer" element={<ReservePage />} />
           <Route path="/customer/menu" element={<CustomerMenuPage />} />
           <Route path="/customer/reservations" element={<MyReservations />} />
+          <Route path="/customer/profile" element={<CustomerProfilePage />} />
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={[ROLES.KITCHEN_STAFF, ROLES.ADMIN]} />}>

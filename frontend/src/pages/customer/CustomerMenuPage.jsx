@@ -8,9 +8,10 @@ import { createOrder } from '../../api/orderApi';
 import ToastMessage from '../../components/ui/ToastMessage';
 
 const navItems = [
-  { to: '/customer', label: 'Dashboard', end: true },
+  { to: '/customer', label: 'Reserve', end: true },
   { to: '/customer/menu', label: 'Menu' },
-  { to: '/customer/reservations', label: 'Reservations' },
+  { to: '/customer/reservations', label: 'My Reservations' },
+  { to: '/customer/profile', label: 'Profile' },
 ];
 
 function CustomerMenuPage() {
