@@ -24,7 +24,7 @@ function TimeElapsed({ createdAt }) {
   return (
     <span
       className={`inline-flex items-center gap-1 text-xs font-semibold tabular-nums px-2 py-[3px] rounded-full ${
-        isLate ? 'text-red-400 animate-pulse' : 'text-blue-400'
+        isLate ? 'text-[color:var(--error)] animate-pulse' : 'text-[color:var(--text-secondary)]'
       }`}
     >
       {/* Clock SVG icon */}

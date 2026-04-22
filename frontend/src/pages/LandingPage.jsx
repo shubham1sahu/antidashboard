@@ -1,7 +1,255 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import MarketingNavbar from '../components/layout/MarketingNavbar';
 import SiteFooter from '../components/layout/SiteFooter';
+import { getPublicReviews } from '../api/reviewApi';
+
+const FALLBACK_REVIEWS = [
+  {
+    id: 1,
+    reviewerName: 'Ariana Lopez',
+    restaurantName: 'Cedar Bistro',
+    comment: 'LuxeServe cut our table wait times by half and our staff finally feels in sync every shift.',
+    rating: 5,
+  },
+  {
+    id: 2,
+    reviewerName: 'Marcus Chen',
+    restaurantName: 'Lotus & Grain',
+    comment: 'Reservations, menu updates, and service handoffs now happen without chaos.',
+    rating: 5,
+  },
+  {
+    id: 3,
+    reviewerName: 'Nina Patel',
+    restaurantName: 'North Dock Kitchen',
+    comment: 'The dashboards made decisions obvious. We improved throughput in just two weeks.',
+    rating: 5,
+  },
+  {
+    id: 4,
+    reviewerName: 'James Rivera',
+    restaurantName: 'The Copper Table',
+    comment: 'We went from paper chaos to a seamless digital workflow overnight. The team loves it.',
+    rating: 5,
+  },
+  {
+    id: 5,
+    reviewerName: 'Sofia Andersson',
+    restaurantName: 'Bloom Kitchen',
+    comment: 'Customer complaints about wait times dropped to nearly zero since we started using LuxeServe.',
+    rating: 5,
+  },
+];
+
+function StarRating({ rating }) {
+  return (
+    <div className="mb-3 flex gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <svg
+          key={i}
+          className={`h-4 w-4 ${i < rating ? 'text-amber-400' : 'text-slate-200'}`}
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
+function ReviewCard({ review }) {
+  const initials = review.reviewerName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase();
+
+  return (
+    <article className="flex h-full flex-col rounded-xl border border-[color:var(--border)] bg-white p-6 shadow-[var(--shadow-sm)] transition-shadow hover:shadow-[var(--shadow-md)]">
+      <StarRating rating={review.rating} />
+      <p className="flex-1 text-sm leading-relaxed text-[color:var(--text-secondary)]">
+        &ldquo;{review.comment}&rdquo;
+      </p>
+      <div className="mt-5 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[color:var(--primary)] to-[color:var(--accent)] text-xs font-bold text-white">
+          {initials}
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-[color:var(--text-primary)]">{review.reviewerName}</p>
+          <p className="text-xs text-[color:var(--text-muted)]">{review.restaurantName}</p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function TestimonialCarousel() {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [current, setCurrent] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const intervalRef = useRef(null);
+
+  // Responsive: how many cards to show at once
+  const [cardsPerView, setCardsPerView] = useState(3);
+
+  useEffect(() => {
+    const updateCardsPerView = () => {
+      if (window.innerWidth < 640) setCardsPerView(1);
+      else if (window.innerWidth < 1024) setCardsPerView(2);
+      else setCardsPerView(3);
+    };
+    updateCardsPerView();
+    window.addEventListener('resize', updateCardsPerView);
+    return () => window.removeEventListener('resize', updateCardsPerView);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    getPublicReviews()
+      .then((data) => {
+        if (!cancelled) {
+          setReviews(data && data.length > 0 ? data : FALLBACK_REVIEWS);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setReviews(FALLBACK_REVIEWS);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const maxIndex = Math.max(0, reviews.length - cardsPerView);
+
+  const goNext = useCallback(() => {
+    setCurrent((prev) => (prev >= maxIndex ? 0 : prev + 1));
+  }, [maxIndex]);
+
+  const goPrev = useCallback(() => {
+    setCurrent((prev) => (prev <= 0 ? maxIndex : prev - 1));
+  }, [maxIndex]);
+
+  // Auto-scroll
+  useEffect(() => {
+    if (isPaused || reviews.length <= cardsPerView) return;
+    intervalRef.current = setInterval(goNext, 4000);
+    return () => clearInterval(intervalRef.current);
+  }, [isPaused, goNext, reviews.length, cardsPerView]);
+
+  if (loading) {
+    return (
+      <section className="bg-[color:var(--surface-alt)] px-6 py-24 md:px-10">
+        <div className="mx-auto max-w-7xl">
+          <h2 className="font-heading text-center text-4xl text-[color:var(--primary)] md:text-5xl">
+            Loved by Growing Restaurants
+          </h2>
+          <div className="mt-14 grid gap-5 md:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse rounded-xl border border-[color:var(--border)] bg-white p-6">
+                <div className="mb-3 h-4 w-24 rounded bg-slate-200" />
+                <div className="space-y-2">
+                  <div className="h-3 w-full rounded bg-slate-200" />
+                  <div className="h-3 w-4/5 rounded bg-slate-200" />
+                </div>
+                <div className="mt-5 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-slate-200" />
+                  <div className="space-y-1">
+                    <div className="h-3 w-24 rounded bg-slate-200" />
+                    <div className="h-2 w-16 rounded bg-slate-200" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="bg-[color:var(--surface-alt)] px-6 py-24 md:px-10">
+      <div className="mx-auto max-w-7xl">
+        <h2 className="font-heading text-center text-4xl text-[color:var(--primary)] md:text-5xl">
+          Loved by Growing Restaurants
+        </h2>
+
+        <div
+          className="relative mt-14"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          {/* Navigation arrows */}
+          {reviews.length > cardsPerView && (
+            <>
+              <button
+                onClick={goPrev}
+                aria-label="Previous review"
+                className="absolute -left-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[color:var(--border)] bg-white text-[color:var(--text-secondary)] shadow-[var(--shadow-md)] transition hover:bg-[color:var(--surface-alt)] hover:text-[color:var(--text-primary)]"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={goNext}
+                aria-label="Next review"
+                className="absolute -right-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[color:var(--border)] bg-white text-[color:var(--text-secondary)] shadow-[var(--shadow-md)] transition hover:bg-[color:var(--surface-alt)] hover:text-[color:var(--text-primary)]"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          )}
+
+          {/* Carousel track */}
+          <div className="overflow-hidden">
+            <div
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{
+                transform: `translateX(-${current * (100 / cardsPerView)}%)`,
+                gap: '1.25rem',
+              }}
+            >
+              {reviews.map((review) => (
+                <div
+                  key={review.id}
+                  className="flex-shrink-0"
+                  style={{ width: `calc((100% - ${(cardsPerView - 1) * 1.25}rem) / ${cardsPerView})` }}
+                >
+                  <ReviewCard review={review} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Dot indicators */}
+          {reviews.length > cardsPerView && (
+            <div className="mt-8 flex justify-center gap-2">
+              {Array.from({ length: maxIndex + 1 }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrent(i)}
+                  aria-label={`Go to slide ${i + 1}`}
+                  className={`h-2.5 rounded-full transition-all duration-300 ${
+                    i === current
+                      ? 'w-8 bg-[color:var(--accent)]'
+                      : 'w-2.5 bg-[color:var(--border)] hover:bg-[color:var(--text-muted)]'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 
 function CounterStat({ value, label, suffix = '' }) {
   const [count, setCount] = useState(0);
@@ -186,42 +434,7 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-[color:var(--surface-alt)] px-6 py-24 md:px-10">
-        <div className="mx-auto max-w-7xl">
-          <h2 className="font-heading text-center text-4xl text-[color:var(--primary)] md:text-5xl">Loved by Growing Restaurants</h2>
-          <div className="mt-14 grid gap-5 md:grid-cols-3">
-            {[
-              {
-                quote: 'LuxeServe cut our table wait times by half and our staff finally feels in sync every shift.',
-                name: 'Ariana Lopez',
-                restaurant: 'Cedar Bistro',
-              },
-              {
-                quote: 'Reservations, menu updates, and service handoffs now happen without chaos.',
-                name: 'Marcus Chen',
-                restaurant: 'Lotus & Grain',
-              },
-              {
-                quote: 'The dashboards made decisions obvious. We improved throughput in just two weeks.',
-                name: 'Nina Patel',
-                restaurant: 'North Dock Kitchen',
-              },
-            ].map((testimonial) => (
-              <article key={testimonial.name} className="rounded-xl border border-[color:var(--border)] bg-white p-6 shadow-[var(--shadow-sm)]">
-                <p className="mb-3 text-amber-400">★★★★★</p>
-                <p className="text-sm leading-relaxed text-[color:var(--text-secondary)]">“{testimonial.quote}”</p>
-                <div className="mt-5 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-[color:var(--primary-light)]" />
-                  <div>
-                    <p className="text-sm font-semibold text-[color:var(--text-primary)]">{testimonial.name}</p>
-                    <p className="text-xs text-[color:var(--text-muted)]">{testimonial.restaurant}</p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+      <TestimonialCarousel />
 
       <section id="pricing" className="px-6 py-24 md:px-10">
         <div className="mx-auto max-w-5xl rounded-2xl bg-[color:var(--primary)] px-6 py-12 text-center md:px-10">

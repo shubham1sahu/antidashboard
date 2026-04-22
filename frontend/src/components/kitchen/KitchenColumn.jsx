@@ -6,10 +6,10 @@ import KitchenTicketCard from './KitchenTicketCard';
  * NEW=blue, IN PROGRESS=amber, READY=green, SERVED=green/teal
  */
 const COLUMN_COLORS = {
-  RECEIVED:    { text: 'text-blue-400',    badge: 'bg-blue-500',    divider: 'border-blue-500/40' },
-  IN_PROGRESS: { text: 'text-amber-400',   badge: 'bg-amber-500',   divider: 'border-amber-500/40' },
-  READY:       { text: 'text-green-400',   badge: 'bg-green-500',   divider: 'border-green-500/40' },
-  SERVED:      { text: 'text-green-400',   badge: 'bg-green-600',   divider: 'border-green-500/40' },
+  RECEIVED:    { text: 'text-[color:var(--accent)]',    badge: 'bg-[color:var(--accent)]',    divider: 'border-[color:var(--border)]' },
+  IN_PROGRESS: { text: 'text-[color:var(--warning)]',   badge: 'bg-[color:var(--warning)]',   divider: 'border-[color:var(--border)]' },
+  READY:       { text: 'text-[color:var(--success)]',   badge: 'bg-[color:var(--success)]',   divider: 'border-[color:var(--border)]' },
+  SERVED:      { text: 'text-[color:var(--text-secondary)]',   badge: 'bg-[color:var(--text-muted)]',   divider: 'border-[color:var(--border)]' },
 };
 
 /** Empty state text per column */
@@ -45,7 +45,7 @@ function KitchenColumn({ status, label, tickets, onStart, onReady, onServed }) {
         }}
       >
         {tickets.length === 0 ? (
-          <p className="text-center text-[11px] text-slate-600 mt-6 select-none">
+          <p className="text-center text-[11px] text-[color:var(--text-secondary)] mt-6 select-none">
             {EMPTY_TEXT[status]}
           </p>
         ) : (

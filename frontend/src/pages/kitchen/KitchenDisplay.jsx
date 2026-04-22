@@ -92,31 +92,31 @@ function KitchenDisplay() {
   const timeStr = currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
 
   return (
-    <div className="min-h-screen bg-[#080d18] text-white flex flex-col" style={{ fontFamily: "'Inter', 'Segoe UI', sans-serif" }}>
+    <div className="min-h-screen bg-[color:var(--surface-alt)] text-[color:var(--text-primary)] flex flex-col font-sans">
 
       {/* ══ HEADER ══════════════════════════════════════════════ */}
-      <header className="bg-[#0b1120] border-b border-slate-800 px-5 py-2.5 flex items-center justify-between sticky top-0 z-20">
+      <header className="bg-[color:var(--surface)] border-b border-[color:var(--border)] px-5 py-2.5 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-2.5">
-          <span className="text-slate-400">
+          <span className="text-[color:var(--text-secondary)]">
             <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
               <rect y="4" width="24" height="2" rx="1" /><rect y="11" width="24" height="2" rx="1" /><rect y="18" width="24" height="2" rx="1" />
             </svg>
           </span>
           <span className="text-base">🍳</span>
-          <h1 className="text-sm font-extrabold tracking-[0.16em] uppercase text-white">Kitchen Display</h1>
+          <h1 className="text-sm font-extrabold tracking-[0.16em] uppercase text-[color:var(--text-primary)]">Kitchen Display</h1>
           <span
-            className={`w-2 h-2 rounded-full flex-shrink-0 ${wsConnected ? 'bg-green-400 animate-pulse' : 'bg-slate-500'}`}
+            className={`w-2 h-2 rounded-full flex-shrink-0 ${wsConnected ? 'bg-[color:var(--success)] animate-pulse' : 'bg-[color:var(--text-muted)]'}`}
             title={wsConnected ? 'Live' : 'Connecting…'}
           />
         </div>
         <div className="flex items-center gap-3 text-sm">
-          <span className="text-slate-400 hidden sm:block">{dateStr}</span>
-          <div className="w-px h-5 bg-slate-700" />
-          <time className="font-mono text-white tabular-nums">{timeStr}</time>
-          <div className="w-px h-5 bg-slate-700" />
+          <span className="text-[color:var(--text-secondary)] hidden sm:block">{dateStr}</span>
+          <div className="w-px h-5 bg-[color:var(--border)]" />
+          <time className="font-mono text-[color:var(--text-primary)] tabular-nums">{timeStr}</time>
+          <div className="w-px h-5 bg-[color:var(--border)]" />
           <button
             onClick={() => { useAuthStore.getState().logout(); window.location.href = '/login'; }}
-            className="text-xs text-slate-400 hover:text-white transition-colors"
+            className="text-xs text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors"
           >
             Logout
           </button>
@@ -124,7 +124,7 @@ function KitchenDisplay() {
       </header>
 
       {/* ══ KANBAN GRID ════════════════════════════════════════ */}
-      <main className="flex-1 grid grid-cols-4 divide-x divide-slate-800/70 overflow-hidden">
+      <main className="flex-1 grid grid-cols-4 divide-x divide-[color:var(--border)] overflow-hidden">
         {COLUMNS.map((col) => (
           <div key={col.status} className="px-3 pt-3 pb-2 flex flex-col overflow-hidden">
             <KitchenColumn
@@ -140,17 +140,17 @@ function KitchenDisplay() {
       </main>
 
       {/* ══ FOOTER LEGEND ═══════════════════════════════════════ */}
-      <footer className="bg-[#0b1120] border-t border-slate-800 px-5 py-2 flex items-center gap-6 text-[11px] text-slate-500 flex-shrink-0">
+      <footer className="bg-[color:var(--surface)] border-t border-[color:var(--border)] px-5 py-2 flex items-center gap-6 text-[11px] text-[color:var(--text-secondary)] flex-shrink-0">
         <span className="flex items-center gap-1.5">
-          <svg viewBox="0 0 24 24" className="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+          <svg viewBox="0 0 24 24" className="w-3 h-3 text-[color:var(--primary-light)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
           Time = Time since order placed
         </span>
         <span className="flex items-center gap-1.5">
-          <svg viewBox="0 0 24 24" className="w-3 h-3 text-red-400" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-          <span className="text-red-400">Red time</span> = More than 15 mins
+          <svg viewBox="0 0 24 24" className="w-3 h-3 text-[color:var(--error)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+          <span className="text-[color:var(--error)]">Red time</span> = More than 15 mins
         </span>
         <span>Click on buttons to update order status</span>
-        {isLoading && <span className="ml-auto text-blue-400 animate-pulse">Syncing with server…</span>}
+        {isLoading && <span className="ml-auto text-[color:var(--primary)] animate-pulse">Syncing with server…</span>}
       </footer>
     </div>
   );
