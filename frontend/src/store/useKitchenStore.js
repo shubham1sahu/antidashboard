@@ -103,10 +103,9 @@ export const useKitchenStore = create((set, get) => ({
    * is never cleared by an empty (or failed) response.
    */
   setTickets: (incoming) => {
-    if (!incoming || incoming.length === 0) {
-      console.warn('[KDS Store] setTickets called with empty array — keeping existing data');
-      return;
-    }
+    // If incoming is null/undefined, do nothing (keep mock data).
+    // If it's an empty array, set it (clears mock data if backend is empty).
+    if (incoming === null || incoming === undefined) return;
     set({ tickets: incoming, error: null });
   },
 

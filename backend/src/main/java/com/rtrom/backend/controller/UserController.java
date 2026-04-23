@@ -49,4 +49,9 @@ public class UserController {
     public ResponseEntity<UserResponse> createStaffAccount(@Valid @RequestBody CreateStaffRequest request) {
         return ResponseEntity.ok(userService.createStaffAccount(request, passwordEncoder));
     }
+
+    @GetMapping("/exists")
+    public ResponseEntity<Boolean> existsByEmail(@RequestParam String email) {
+        return ResponseEntity.ok(userService.existsByEmail(email));
+    }
 }

@@ -1,6 +1,6 @@
 package com.rtrom.backend.dto.reservation;
 
-import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -12,7 +12,7 @@ public record CreateReservationRequest(
     Long tableId,
 
     @NotNull(message = "Reservation date is required")
-    @FutureOrPresent(message = "Reservation date cannot be in the past")
+    @Future(message = "Reservation date must be in the future")
     LocalDate reservationDate,
 
     @NotNull(message = "Start time is required")

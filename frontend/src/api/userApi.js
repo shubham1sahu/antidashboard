@@ -19,3 +19,8 @@ export async function createStaffAccount(data) {
   const response = await apiClient.post('/users/create-staff', data);
   return response.data;
 }
+
+export async function checkEmailExists(email) {
+  const response = await apiClient.get('/users/exists', { params: { email } });
+  return response.data;
+}

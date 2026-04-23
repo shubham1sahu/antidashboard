@@ -31,16 +31,21 @@ const useKitchenSocket = (onTicketUpdate, enabled = true, onReconnect) => {
 
         const handle = (topic, msg) => {
           try {
-            const ticket = JSON.parse(msg.body);
-            console.log('[WS-RTROM] Message on', topic, ticket);
-            onTicketUpdateRef.current?.(ticket);
+            let data;
+            try {
+              data = JSON.parse(msg.body);
+            } catch (e) {
+              data = msg.body; // Handle plain string signals
+            }
+            console.log('[WS-RTROM] Message on', topic, data);
+            onTicketUpdateRef.current?.(data);
           } catch (e) {
-            console.error('[WS-RTROM] Parse error on', topic, e);
+            console.error('[WS-RTROM] Dispatch error on', topic, e);
           }
         };
 
         // Subscribe to all kitchen-related topics
-        ['/topic/kitchen', '/topic/orders', '/topic/kitchen/tickets'].forEach((topic) => {
+        ['/topic/kitchen', '/topic/orders', '/topic/kitchen/tickets', '/topic/updates'].forEach((topic) => {
           client.subscribe(topic, (msg) => handle(topic, msg));
           console.log('[WS-RTROM] Subscribed to', topic);
         });

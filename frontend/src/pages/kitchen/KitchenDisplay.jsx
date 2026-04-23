@@ -1,36 +1,32 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
-
 import { useKitchenStore } from '../../store/useKitchenStore';
-import useAuthStore from '../../store/useAuthStore';
 import useKitchenSocket from '../../hooks/useKitchenSocket';
 import kitchenApi from '../../api/kitchenApi';
 import KitchenColumn from '../../components/kitchen/KitchenColumn';
+import DashboardShell from '../../components/layout/DashboardShell';
 
 const COLUMNS = [
-  { status: 'RECEIVED', label: 'NEW' },
-  { status: 'IN_PROGRESS', label: 'IN PROGRESS' },
-  { status: 'READY', label: 'READY' },
-  { status: 'SERVED', label: 'SERVED' },
+  { status: 'RECEIVED', label: 'New' },
+  { status: 'IN_PROGRESS', label: 'Preparing' },
+  { status: 'READY', label: 'Ready' },
+  { status: 'SERVED', label: 'Served' },
 ];
 
 const NEXT_STATUS = { RECEIVED: 'IN_PROGRESS', IN_PROGRESS: 'READY', READY: 'SERVED' };
 const PREV_STATUS = { IN_PROGRESS: 'RECEIVED', READY: 'IN_PROGRESS', SERVED: 'READY' };
 
+const navItems = [
+  { to: '/kitchen', label: 'Kitchen Screen', end: true },
+];
+
 function KitchenDisplay() {
   const {
-    setTickets, updateTicket, setLoading, setError,
+    setTickets, updateTicket, setLoading,
     getTicketsByStatus, isLoading, optimisticUpdateStatus,
   } = useKitchenStore();
 
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [wsConnected, setWsConnected] = useState(false);
-
-  // Live clock
-  useEffect(() => {
-    const id = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
 
   // Fetch real tickets — but NEVER clear the store on failure
   const fetchAllTickets = useCallback(async () => {
@@ -39,27 +35,57 @@ function KitchenDisplay() {
       const res = await kitchenApi.getAllTickets();
       const data = res?.data;
       const list = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
-      console.log('[KDS] API returned', list.length, 'tickets');
-      setTickets(list); // store ignores empty arrays to preserve mock data
+      // We only keep mock data if the incoming is null/undefined. 
+      // If it's an empty array, it means the backend really has no tickets.
+      if (list !== null && list !== undefined) {
+        setTickets(list);
+      }
     } catch (err) {
-      // Swallow error silently — mock data remains visible
       console.warn('[KDS] API fetch failed (mock data preserved):', err?.message);
     } finally {
       setLoading(false);
     }
-  }, [setTickets, setLoading, setError]);
+  }, [setTickets, setLoading]);
 
-  // Only show loading spinner on very first mount if no tickets exist yet
-  // Since mock data is pre-populated, isLoading should resolve instantly
   useEffect(() => { fetchAllTickets(); }, [fetchAllTickets]);
 
   // WebSocket handlers
   const handleTicketUpdate = useCallback((ticket) => {
+    // Global signals like "ORDER_UPDATED" come as strings
+    if (typeof ticket === 'string') {
+      console.log('[KDS] Received global signal:', ticket);
+      fetchAllTickets();
+      return;
+    }
+
+    const isNew = !getTicketsByStatus('RECEIVED').some(t => t.ticketId === ticket.ticketId) && 
+                  !getTicketsByStatus('IN_PROGRESS').some(t => t.ticketId === ticket.ticketId) &&
+                  !getTicketsByStatus('READY').some(t => t.ticketId === ticket.ticketId) &&
+                  !getTicketsByStatus('SERVED').some(t => t.ticketId === ticket.ticketId);
+
     updateTicket(ticket);
-    toast(`Table #${ticket.tableNumber} → ${ticket.kitchenStatus}`, {
-      icon: '🍴', duration: 2500, id: `ws-${ticket.ticketId}`,
-    });
-  }, [updateTicket]);
+
+    if (isNew && ticket.kitchenStatus === 'RECEIVED') {
+      // Play a subtle notification sound for new orders
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+      audio.volume = 0.4;
+      audio.play().catch(e => console.log('Audio play blocked'));
+      
+      toast.success(`NEW ORDER: Table ${ticket.tableNumber}`, {
+        icon: '🔔',
+        duration: 4000,
+        style: {
+          borderRadius: '12px',
+          background: '#1e293b',
+          color: '#fff',
+        }
+      });
+    } else {
+      toast(`Table #${ticket.tableNumber} → ${ticket.kitchenStatus.replace('_', ' ')}`, {
+        icon: '🍴', duration: 2500, id: `ws-${ticket.ticketId}`,
+      });
+    }
+  }, [updateTicket, getTicketsByStatus, fetchAllTickets]);
 
   const handleReconnect = useCallback(() => {
     setWsConnected(true);
@@ -68,18 +94,15 @@ function KitchenDisplay() {
 
   useKitchenSocket(handleTicketUpdate, true, handleReconnect);
 
-  // Optimistic action handlers with revert on API failure
   const makeHandler = useCallback((apiCall, fromStatus) => async (ticketId) => {
     const next = NEXT_STATUS[fromStatus];
     if (!next) return;
-    // Move card instantly in UI
     optimisticUpdateStatus(ticketId, next);
-    // Skip API for mock ticket IDs (>= 1000 are mock)
     if (ticketId >= 1000) return;
     try {
       await apiCall(ticketId);
     } catch (err) {
-      optimisticUpdateStatus(ticketId, PREV_STATUS[next] ?? fromStatus); // revert
+      optimisticUpdateStatus(ticketId, PREV_STATUS[next] ?? fromStatus);
       toast.error(err?.response?.data?.message || 'Action failed');
     }
   }, [optimisticUpdateStatus]);
@@ -88,72 +111,47 @@ function KitchenDisplay() {
   const handleReady = useCallback(makeHandler(kitchenApi.markReady, 'IN_PROGRESS'), [makeHandler]);
   const handleServed = useCallback(makeHandler(kitchenApi.markServed, 'READY'), [makeHandler]);
 
-  const dateStr = currentTime.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
-  const timeStr = currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-
   return (
-    <div className="min-h-screen bg-[color:var(--surface-alt)] text-[color:var(--text-primary)] flex flex-col font-sans">
+    <DashboardShell
+      title="Kitchen Display"
+      subtitle="Live order flow and kitchen performance monitoring."
+      navItems={navItems}
+    >
+      <div className="flex flex-col h-[calc(100vh-220px)]">
+        <main className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 overflow-hidden">
+          {COLUMNS.map((col) => (
+            <div key={col.status} className="flex flex-col overflow-hidden bg-white rounded-xl border border-[color:var(--border)] shadow-[var(--shadow-sm)] p-4">
+              <KitchenColumn
+                status={col.status}
+                label={col.label}
+                tickets={getTicketsByStatus(col.status)}
+                onStart={handleStart}
+                onReady={handleReady}
+                onServed={handleServed}
+              />
+            </div>
+          ))}
+        </main>
 
-      {/* ══ HEADER ══════════════════════════════════════════════ */}
-      <header className="bg-[color:var(--surface)] border-b border-[color:var(--border)] px-5 py-2.5 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-2.5">
-          <span className="text-[color:var(--text-secondary)]">
-            <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-              <rect y="4" width="24" height="2" rx="1" /><rect y="11" width="24" height="2" rx="1" /><rect y="18" width="24" height="2" rx="1" />
-            </svg>
-          </span>
-          <span className="text-base">🍳</span>
-          <h1 className="text-sm font-extrabold tracking-[0.16em] uppercase text-[color:var(--text-primary)]">Kitchen Display</h1>
-          <span
-            className={`w-2 h-2 rounded-full flex-shrink-0 ${wsConnected ? 'bg-[color:var(--success)] animate-pulse' : 'bg-[color:var(--text-muted)]'}`}
-            title={wsConnected ? 'Live' : 'Connecting…'}
-          />
-        </div>
-        <div className="flex items-center gap-3 text-sm">
-          <span className="text-[color:var(--text-secondary)] hidden sm:block">{dateStr}</span>
-          <div className="w-px h-5 bg-[color:var(--border)]" />
-          <time className="font-mono text-[color:var(--text-primary)] tabular-nums">{timeStr}</time>
-          <div className="w-px h-5 bg-[color:var(--border)]" />
-          <button
-            onClick={() => { useAuthStore.getState().logout(); window.location.href = '/login'; }}
-            className="text-xs text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </header>
-
-      {/* ══ KANBAN GRID ════════════════════════════════════════ */}
-      <main className="flex-1 grid grid-cols-4 divide-x divide-[color:var(--border)] overflow-hidden">
-        {COLUMNS.map((col) => (
-          <div key={col.status} className="px-3 pt-3 pb-2 flex flex-col overflow-hidden">
-            <KitchenColumn
-              status={col.status}
-              label={col.label}
-              tickets={getTicketsByStatus(col.status)}
-              onStart={handleStart}
-              onReady={handleReady}
-              onServed={handleServed}
-            />
+        <footer className="mt-6 flex flex-wrap items-center gap-6 text-xs text-[color:var(--text-secondary)] bg-white p-4 rounded-xl border border-[color:var(--border)] shadow-[var(--shadow-sm)]">
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-[color:var(--success)]' : 'bg-[color:var(--text-muted)]'}`} />
+            <span>{wsConnected ? 'Live Connection Active' : 'Connecting to Server...'}</span>
           </div>
-        ))}
-      </main>
-
-      {/* ══ FOOTER LEGEND ═══════════════════════════════════════ */}
-      <footer className="bg-[color:var(--surface)] border-t border-[color:var(--border)] px-5 py-2 flex items-center gap-6 text-[11px] text-[color:var(--text-secondary)] flex-shrink-0">
-        <span className="flex items-center gap-1.5">
-          <svg viewBox="0 0 24 24" className="w-3 h-3 text-[color:var(--primary-light)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-          Time = Time since order placed
-        </span>
-        <span className="flex items-center gap-1.5">
-          <svg viewBox="0 0 24 24" className="w-3 h-3 text-[color:var(--error)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-          <span className="text-[color:var(--error)]">Red time</span> = More than 15 mins
-        </span>
-        <span>Click on buttons to update order status</span>
-        {isLoading && <span className="ml-auto text-[color:var(--primary)] animate-pulse">Syncing with server…</span>}
-      </footer>
-    </div>
+          <span className="flex items-center gap-1.5">
+            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-[color:var(--primary)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+            Time = Total wait time
+          </span>
+          <span className="flex items-center gap-1.5">
+            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-[color:var(--error)]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+            <span className="text-[color:var(--error)] font-medium">Critical (15m+)</span>
+          </span>
+          {isLoading && <span className="ml-auto text-[color:var(--accent)] animate-pulse font-medium">Syncing...</span>}
+        </footer>
+      </div>
+    </DashboardShell>
   );
 }
 
 export default KitchenDisplay;
+

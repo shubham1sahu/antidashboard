@@ -7,8 +7,8 @@ import com.rtrom.backend.dto.response.KitchenTicketResponse;
 import com.rtrom.backend.exception.BadRequestException;
 import com.rtrom.backend.exception.ResourceNotFoundException;
 import com.rtrom.backend.repository.KitchenOrderTicketRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,12 +17,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class KitchenService {
+    private static final Logger log = LoggerFactory.getLogger(KitchenService.class);
 
     private final KitchenOrderTicketRepository kitchenTicketRepository;
+    private final com.rtrom.backend.repository.OrderRepository orderRepository;
     private final KitchenEventPublisher kitchenEventPublisher;
+
+    public KitchenService(
+            KitchenOrderTicketRepository kitchenTicketRepository,
+            com.rtrom.backend.repository.OrderRepository orderRepository,
+            KitchenEventPublisher kitchenEventPublisher) {
+        this.kitchenTicketRepository = kitchenTicketRepository;
+        this.orderRepository = orderRepository;
+        this.kitchenEventPublisher = kitchenEventPublisher;
+    }
 
     /**
      * Called internally by OrderService after an order is placed.
@@ -94,20 +103,28 @@ public class KitchenService {
 
         if (ticket.getKitchenStatus() != KitchenTicketStatus.RECEIVED) {
             throw new BadRequestException(
-                "Cannot start cooking. Ticket is currently in status: " + ticket.getKitchenStatus()
-            );
+                    "Cannot start cooking. Ticket is currently in status: " + ticket.getKitchenStatus());
         }
 
         ticket.setKitchenStatus(KitchenTicketStatus.IN_PROGRESS);
         ticket.setStartedAt(LocalDateTime.now());
 
         KitchenOrderTicket saved = kitchenTicketRepository.save(ticket);
+
+        // Sync Order status
+        Order order = saved.getOrder();
+        order.setStatus(com.rtrom.backend.domain.model.OrderStatus.PREPARING);
+        order.setAssignedTo(saved.getAssignedTo());
+        order.setEstimatedMinutes(saved.getEstimatedMinutes());
+        orderRepository.save(order);
+
         KitchenTicketResponse response = mapToResponse(saved);
 
         kitchenEventPublisher.publishTicketUpdate(response);
-        kitchenEventPublisher.publishTableOrderUpdate(saved.getOrder().getTable().getId(), response);
+        kitchenEventPublisher.publishTableOrderUpdate(order.getTable().getId(), response);
+        kitchenEventPublisher.publishGeneralUpdate("ORDER_STATUS_UPDATED");
 
-        log.info("Ticket id={} moved to IN_PROGRESS", ticketId);
+        log.info("Ticket id={} moved to IN_PROGRESS. Order status set to PREPARING.", ticketId);
         return response;
     }
 
@@ -122,25 +139,33 @@ public class KitchenService {
 
         if (ticket.getKitchenStatus() != KitchenTicketStatus.IN_PROGRESS) {
             throw new BadRequestException(
-                "Cannot mark ready. Ticket is currently in status: " + ticket.getKitchenStatus()
-            );
+                    "Cannot mark ready. Ticket is currently in status: " + ticket.getKitchenStatus());
         }
 
         ticket.setKitchenStatus(KitchenTicketStatus.READY);
         ticket.setCompletedAt(LocalDateTime.now());
 
         KitchenOrderTicket saved = kitchenTicketRepository.save(ticket);
+
+        // Sync Order status
+        Order order = saved.getOrder();
+        order.setStatus(com.rtrom.backend.domain.model.OrderStatus.READY);
+        order.setAssignedTo(saved.getAssignedTo());
+        order.setEstimatedMinutes(saved.getEstimatedMinutes());
+        orderRepository.save(order);
+
         KitchenTicketResponse response = mapToResponse(saved);
 
         kitchenEventPublisher.publishTicketUpdate(response);
-        kitchenEventPublisher.publishTableOrderUpdate(saved.getOrder().getTable().getId(), response);
+        kitchenEventPublisher.publishTableOrderUpdate(order.getTable().getId(), response);
+        kitchenEventPublisher.publishGeneralUpdate("ORDER_STATUS_UPDATED");
 
-        log.info("Ticket id={} moved to READY", ticketId);
+        log.info("Ticket id={} moved to READY. Order status set to READY.", ticketId);
         return response;
     }
 
     /**
-     * PUT /api/kitchen/tickets/{id}/served  (existing endpoint from base scaffold)
+     * PUT /api/kitchen/tickets/{id}/served (existing endpoint from base scaffold)
      * Transitions ticket from READY → SERVED.
      * Called by WAITER role.
      */
@@ -150,19 +175,25 @@ public class KitchenService {
 
         if (ticket.getKitchenStatus() != KitchenTicketStatus.READY) {
             throw new BadRequestException(
-                "Cannot mark served. Ticket is currently in status: " + ticket.getKitchenStatus()
-            );
+                    "Cannot mark served. Ticket is currently in status: " + ticket.getKitchenStatus());
         }
 
         ticket.setKitchenStatus(KitchenTicketStatus.SERVED);
 
         KitchenOrderTicket saved = kitchenTicketRepository.save(ticket);
+
+        // Sync Order status
+        Order order = saved.getOrder();
+        order.setStatus(com.rtrom.backend.domain.model.OrderStatus.SERVED);
+        orderRepository.save(order);
+
         KitchenTicketResponse response = mapToResponse(saved);
 
         kitchenEventPublisher.publishTicketUpdate(response);
-        kitchenEventPublisher.publishTableOrderUpdate(saved.getOrder().getTable().getId(), response);
+        kitchenEventPublisher.publishTableOrderUpdate(order.getTable().getId(), response);
+        kitchenEventPublisher.publishGeneralUpdate("ORDER_STATUS_UPDATED");
 
-        log.info("Ticket id={} moved to SERVED", ticketId);
+        log.info("Ticket id={} moved to SERVED. Order status set to SERVED.", ticketId);
         return response;
     }
 
@@ -175,8 +206,15 @@ public class KitchenService {
         KitchenOrderTicket ticket = findTicketById(ticketId);
         ticket.setAssignedTo(assignedTo);
         KitchenOrderTicket saved = kitchenTicketRepository.save(ticket);
+
+        // Sync to Order
+        Order order = saved.getOrder();
+        order.setAssignedTo(saved.getAssignedTo());
+        orderRepository.save(order);
+
         KitchenTicketResponse response = mapToResponse(saved);
         kitchenEventPublisher.publishTicketUpdate(response);
+        kitchenEventPublisher.publishGeneralUpdate("KITCHEN_ASSIGNMENT_UPDATED");
         return response;
     }
 

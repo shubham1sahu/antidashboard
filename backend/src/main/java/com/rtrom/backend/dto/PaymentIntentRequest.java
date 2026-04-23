@@ -1,14 +1,10 @@
 package com.rtrom.backend.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
 public class PaymentIntentRequest {
     private Long billId;
+
+    public PaymentIntentRequest() {}
+
+    public Long getBillId() { return billId; }
+    public void setBillId(Long billId) { this.billId = billId; }
 }

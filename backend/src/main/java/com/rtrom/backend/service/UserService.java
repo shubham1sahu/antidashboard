@@ -12,6 +12,10 @@ import com.rtrom.backend.exception.ResourceNotFoundException;
 import com.rtrom.backend.repository.OrderRepository;
 import com.rtrom.backend.repository.ReservationRepository;
 import com.rtrom.backend.repository.UserRepository;
+import com.rtrom.backend.repository.CustomerProfileRepository;
+import com.rtrom.backend.repository.KitchenOrderTicketRepository;
+import com.rtrom.backend.repository.BillRepository;
+import com.rtrom.backend.repository.PaymentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,11 +31,24 @@ public class UserService {
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final ReservationRepository reservationRepository;
+    private final CustomerProfileRepository customerProfileRepository;
+    private final KitchenOrderTicketRepository kitchenOrderTicketRepository;
+    private final BillRepository billRepository;
+    private final PaymentRepository paymentRepository;
 
-    public UserService(UserRepository userRepository, OrderRepository orderRepository, ReservationRepository reservationRepository) {
+    public UserService(UserRepository userRepository, OrderRepository orderRepository, 
+                      ReservationRepository reservationRepository,
+                      CustomerProfileRepository customerProfileRepository,
+                      KitchenOrderTicketRepository kitchenOrderTicketRepository,
+                      BillRepository billRepository,
+                      PaymentRepository paymentRepository) {
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.reservationRepository = reservationRepository;
+        this.customerProfileRepository = customerProfileRepository;
+        this.kitchenOrderTicketRepository = kitchenOrderTicketRepository;
+        this.billRepository = billRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     @Transactional(readOnly = true)
@@ -80,10 +97,28 @@ public class UserService {
                 }
             }
             
-            // Delete associated data first to avoid integrity violations
+            // Delete associated data in correct dependency order to avoid integrity violations
+            logger.info("Cleaning up associated data for user: {}", user.getEmail());
+            
+            // 1. Customer Profile
+            customerProfileRepository.deleteByUserId(userId);
+            
+            // 2. Payments (depends on Bill -> Order -> User)
+            paymentRepository.deleteByOrderUserId(userId);
+            
+            // 3. Bills (depends on Order -> User)
+            billRepository.deleteByOrderUserId(userId);
+            
+            // 4. Kitchen Tickets (depends on Order -> User)
+            kitchenOrderTicketRepository.deleteByOrderUserId(userId);
+            
+            // 5. Orders (depends on User)
             orderRepository.deleteByUserId(userId);
+            
+            // 6. Reservations (depends on User)
             reservationRepository.deleteByUserId(userId);
             
+            // 7. Finally delete the user
             userRepository.delete(user);
             userRepository.flush();
             logger.info("Successfully deleted user and associated data: {}", user.getEmail());
@@ -110,5 +145,10 @@ public class UserService {
         user.setRole(request.role());
 
         return UserResponse.from(userRepository.save(user));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 }

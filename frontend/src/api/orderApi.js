@@ -21,3 +21,8 @@ export async function deleteOrder(orderId) {
   const response = await apiClient.delete(`/orders/${orderId}`);
   return response.data;
 }
+
+export async function deleteOrders(orderIds) {
+  const response = await apiClient.delete('/orders/bulk-delete', { data: orderIds });
+  return response.data;
+}

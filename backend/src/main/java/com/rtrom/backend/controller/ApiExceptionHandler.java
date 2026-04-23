@@ -50,7 +50,8 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleFallback(Exception ex) {
-        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected server error");
+        ex.printStackTrace(); // Simple but effective for this environment
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected server error: " + ex.getMessage());
     }
 
     private ResponseEntity<ApiErrorResponse> buildError(HttpStatus status, String message) {

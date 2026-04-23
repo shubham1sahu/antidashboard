@@ -31,15 +31,18 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final TableService tableService;
+    private final KitchenEventPublisher eventPublisher;
 
     public ReservationService(
         ReservationRepository reservationRepository,
         UserRepository userRepository,
-        TableService tableService
+        TableService tableService,
+        KitchenEventPublisher eventPublisher
     ) {
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
         this.tableService = tableService;
+        this.eventPublisher = eventPublisher;
     }
 
     public ReservationResponse createReservation(String userEmail, CreateReservationRequest request) {
@@ -74,7 +77,9 @@ public class ReservationService {
         reservation.setSpecialRequests(request.specialRequests());
         reservation.setStatus(ReservationStatus.PENDING);
 
-        return ReservationResponse.from(reservationRepository.save(reservation));
+        Reservation saved = reservationRepository.save(reservation);
+        eventPublisher.publishGeneralUpdate("RESERVATION_CREATED");
+        return ReservationResponse.from(saved);
     }
 
     public ReservationResponse confirmReservation(Long reservationId) {
@@ -83,7 +88,9 @@ public class ReservationService {
 
         reservation.setStatus(ReservationStatus.CONFIRMED);
         reservation.getTable().setStatus(TableStatus.RESERVED);
-        return ReservationResponse.from(reservationRepository.save(reservation));
+        Reservation saved = reservationRepository.save(reservation);
+        eventPublisher.publishGeneralUpdate("RESERVATION_CONFIRMED");
+        return ReservationResponse.from(saved);
     }
 
     public ReservationResponse createWalkIn(WalkInRequest request) {
@@ -121,7 +128,9 @@ public class ReservationService {
 
         table.setStatus(TableStatus.OCCUPIED);
 
-        return ReservationResponse.from(reservationRepository.save(reservation));
+        Reservation saved = reservationRepository.save(reservation);
+        eventPublisher.publishGeneralUpdate("WALK_IN_CREATED");
+        return ReservationResponse.from(saved);
     }
 
     public ReservationResponse cancelReservation(Long reservationId, String userEmail, boolean adminAction) {
@@ -135,7 +144,9 @@ public class ReservationService {
 
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservation.getTable().setStatus(TableStatus.AVAILABLE);
-        return ReservationResponse.from(reservationRepository.save(reservation));
+        Reservation saved = reservationRepository.save(reservation);
+        eventPublisher.publishGeneralUpdate("RESERVATION_CANCELLED");
+        return ReservationResponse.from(saved);
     }
 
     @Transactional(readOnly = true)
@@ -166,15 +177,8 @@ public class ReservationService {
         }
 
         LocalDate today = LocalDate.now();
-        if (request.reservationDate().isBefore(today)) {
-            throw new BadRequestException("Reservation date cannot be in the past");
-        }
-
-        if (request.reservationDate().isEqual(today)) {
-            LocalTime now = LocalTime.now();
-            if (request.startTime().isBefore(now.plusMinutes(30))) {
-                throw new BadRequestException("Reservations for today must be made at least 30 minutes in advance");
-            }
+        if (!request.reservationDate().isAfter(today)) {
+            throw new BadRequestException("Reservation date must be in the future");
         }
     }
 

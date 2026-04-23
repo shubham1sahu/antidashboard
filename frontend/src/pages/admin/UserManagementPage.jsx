@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import DashboardShell from '../../components/layout/DashboardShell';
 import ToastMessage from '../../components/ui/ToastMessage';
-import { getUsers, updateUserRole, deleteUser, createStaffAccount } from '../../api/userApi';
+import { getUsers, updateUserRole, deleteUser, createStaffAccount, checkEmailExists } from '../../api/userApi';
 import useAuthStore from '../../store/useAuthStore';
 
 const navItems = [
@@ -40,12 +40,54 @@ function UserManagementPage() {
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [userToDelete, setUserToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [emailChecking, setEmailChecking] = useState(false);
   
   const currentUserEmail = useAuthStore((state) => state.user?.email);
 
   useEffect(() => {
     loadUsers();
   }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (newStaff.email) {
+        validateAndCheckEmail(newStaff.email);
+      } else {
+        setEmailError('');
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [newStaff.email]);
+
+  const validateAndCheckEmail = async (email) => {
+    // 1. Format check
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      setEmailError('Enter a valid email address');
+      return;
+    }
+
+    // Clear previous format error before checking existence
+    setEmailError('');
+
+    // 2. Existence check
+    try {
+      setEmailChecking(true);
+      const exists = await checkEmailExists(email);
+      if (exists) {
+        setEmailError('Email is already in use');
+      }
+    } catch (error) {
+      console.error('Failed to check email availability:', error);
+      // If API fails, we don't block the user but we don't show an error either
+      // unless we want to be safe. Let's keep it clear.
+      setEmailError('');
+    } finally {
+      setEmailChecking(false);
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -93,6 +135,7 @@ function UserManagementPage() {
 
   const handleCreateStaff = async (e) => {
     e.preventDefault();
+    if (emailError) return;
     try {
       setCreating(true);
       await createStaffAccount(newStaff);
@@ -192,15 +235,23 @@ function UserManagementPage() {
                 onChange={(e) => setNewStaff({ ...newStaff, lastName: e.target.value })}
               />
             </div>
-            <div>
+            <div className="relative">
               <label className="label">Email</label>
               <input
                 required
                 type="email"
-                className="input"
+                className={`input w-full ${emailError ? 'border-red-500 focus:ring-red-500' : ''}`}
                 value={newStaff.email}
                 onChange={(e) => setNewStaff({ ...newStaff, email: e.target.value })}
               />
+              {emailChecking && (
+                <span className="absolute right-3 top-[38px] flex h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-[color:var(--primary)]"></span>
+              )}
+              {emailError && (
+                <p className="mt-1 text-xs font-medium text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
+                  {emailError}
+                </p>
+              )}
             </div>
             <div>
               <label className="label">Password</label>
@@ -225,7 +276,11 @@ function UserManagementPage() {
               </select>
             </div>
             <div className="flex items-end">
-              <button disabled={creating} type="submit" className="btn-accent w-full justify-center">
+              <button 
+                disabled={creating || !!emailError || emailChecking} 
+                type="submit" 
+                className="btn-accent w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 {creating ? 'Creating...' : 'Create Account'}
               </button>
             </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import DashboardShell from '../../components/layout/DashboardShell';
 import { getReservationsByDate } from '../../api/reservationApi';
 import { getTables } from '../../api/tableApi';
+import useKitchenSocket from '../../hooks/useKitchenSocket';
 
 const navItems = [
   { to: '/admin', label: 'Overview', end: true },
@@ -21,28 +22,33 @@ function AdminDashboardPage() {
     todaysReservations: 0,
   });
 
+  const loadDashboard = async () => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const [tables, reservations] = await Promise.all([
+        getTables(),
+        getReservationsByDate(today),
+      ]);
+
+      setStats({
+        totalTables: tables.length,
+        availableTables: tables.filter((table) => table.status === 'AVAILABLE').length,
+        occupiedTables: tables.filter((table) => table.status === 'OCCUPIED').length,
+        todaysReservations: reservations.length,
+      });
+    } catch (error) {
+      console.error('Dashboard reload failed', error);
+    }
+  };
+
   useEffect(() => {
-    const loadDashboard = async () => {
-      try {
-        const today = new Date().toISOString().slice(0, 10);
-        const [tables, reservations] = await Promise.all([
-          getTables(),
-          getReservationsByDate(today),
-        ]);
-
-        setStats({
-          totalTables: tables.length,
-          availableTables: tables.filter((table) => table.status === 'AVAILABLE').length,
-          occupiedTables: tables.filter((table) => table.status === 'OCCUPIED').length,
-          todaysReservations: reservations.length,
-        });
-      } catch (error) {
-        setStats((current) => current);
-      }
-    };
-
     loadDashboard();
   }, []);
+
+  useKitchenSocket(() => {
+    console.log('[Admin Dashboard] Syncing stats...');
+    loadDashboard();
+  });
 
   const cards = [
     { label: 'Total Tables', value: stats.totalTables },

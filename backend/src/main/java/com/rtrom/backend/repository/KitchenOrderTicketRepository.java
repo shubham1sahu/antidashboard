@@ -25,4 +25,8 @@ public interface KitchenOrderTicketRepository extends JpaRepository<KitchenOrder
     List<KitchenOrderTicket> findActiveTicketsByTableId(@Param("tableId") Long tableId);
 
     boolean existsByOrderIdAndKitchenStatusNot(Long orderId, KitchenTicketStatus status);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM KitchenOrderTicket k WHERE k.order.user.id = :userId")
+    void deleteByOrderUserId(@Param("userId") Long userId);
 }

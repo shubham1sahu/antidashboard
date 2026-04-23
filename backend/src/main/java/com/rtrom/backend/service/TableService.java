@@ -28,15 +28,18 @@ public class TableService {
     private final RestaurantTableRepository restaurantTableRepository;
     private final ReservationRepository reservationRepository;
     private final OrderRepository orderRepository;
+    private final KitchenEventPublisher eventPublisher;
 
     public TableService(
         RestaurantTableRepository restaurantTableRepository,
         ReservationRepository reservationRepository,
-        OrderRepository orderRepository
+        OrderRepository orderRepository,
+        KitchenEventPublisher eventPublisher
     ) {
         this.restaurantTableRepository = restaurantTableRepository;
         this.reservationRepository = reservationRepository;
         this.orderRepository = orderRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public RestaurantTableResponse createTable(CreateTableRequest request) {
@@ -44,14 +47,18 @@ public class TableService {
 
         RestaurantTable table = new RestaurantTable();
         applyValues(table, request.tableNumber(), request.capacity(), request.status(), request.location(), request.floorNumber());
-        return RestaurantTableResponse.from(restaurantTableRepository.save(table));
+        RestaurantTableResponse response = RestaurantTableResponse.from(restaurantTableRepository.save(table));
+        eventPublisher.publishGeneralUpdate("TABLE_CREATED");
+        return response;
     }
 
     public RestaurantTableResponse updateTable(Long id, UpdateTableRequest request) {
         RestaurantTable table = getTableEntity(id);
         validateUniqueTableNumber(request.tableNumber(), id);
         applyValues(table, request.tableNumber(), request.capacity(), request.status(), request.location(), request.floorNumber());
-        return RestaurantTableResponse.from(restaurantTableRepository.save(table));
+        RestaurantTableResponse response = RestaurantTableResponse.from(restaurantTableRepository.save(table));
+        eventPublisher.publishGeneralUpdate("TABLE_UPDATED");
+        return response;
     }
 
     public void deleteTable(Long id) {
@@ -67,6 +74,7 @@ public class TableService {
         
         restaurantTableRepository.delete(table);
         restaurantTableRepository.flush();
+        eventPublisher.publishGeneralUpdate("TABLE_DELETED");
     }
 
     @Transactional(readOnly = true)
@@ -105,7 +113,9 @@ public class TableService {
     public RestaurantTableResponse updateStatus(Long id, TableStatus status) {
         RestaurantTable table = getTableEntity(id);
         table.setStatus(status);
-        return RestaurantTableResponse.from(restaurantTableRepository.save(table));
+        RestaurantTableResponse response = RestaurantTableResponse.from(restaurantTableRepository.save(table));
+        eventPublisher.publishGeneralUpdate("TABLE_STATUS_UPDATED");
+        return response;
     }
 
     public RestaurantTable getTableEntity(Long id) {

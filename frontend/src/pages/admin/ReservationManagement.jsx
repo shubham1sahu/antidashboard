@@ -131,7 +131,11 @@ function ReservationManagement() {
 
               {reservations.map((reservation) => (
                 <tr key={reservation.id} className="border-t border-[color:var(--border)]">
-                  <td className="px-4 py-4">{reservation.user.firstName} {reservation.user.lastName}</td>
+                  <td className="px-4 py-4">
+                    {reservation.specialRequests?.startsWith('Walk-in: ') && !reservation.specialRequests.includes('Anonymous')
+                      ? reservation.specialRequests.replace('Walk-in: ', '')
+                      : `${reservation.user.firstName} ${reservation.user.lastName}`}
+                  </td>
                   <td className="px-4 py-4">{reservation.tableNumber}</td>
                   <td className="px-4 py-4">{reservation.startTime.slice(0, 5)} - {reservation.endTime.slice(0, 5)}</td>
                   <td className="px-4 py-4">{reservation.guestCount}</td>
