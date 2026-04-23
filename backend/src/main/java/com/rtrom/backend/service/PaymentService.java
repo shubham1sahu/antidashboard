@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -29,7 +30,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class PaymentService {
 
-    @Value("${app.stripe.secret-key}")
+    @Value("${app.stripe.secret-key:}")
     private String stripeSecretKey;
 
     private final PaymentRepository paymentRepository;
@@ -38,11 +39,21 @@ public class PaymentService {
 
     @PostConstruct
     public void init() {
-        Stripe.apiKey = stripeSecretKey;
+        if (StringUtils.hasText(stripeSecretKey)) {
+            Stripe.apiKey = stripeSecretKey;
+        }
+    }
+
+    private void ensureStripeConfigured() {
+        if (!StringUtils.hasText(stripeSecretKey)) {
+            throw new IllegalStateException("Stripe is not configured. Set app.stripe.secret-key or STRIPE_SECRET_KEY.");
+        }
     }
 
     @Transactional
     public PaymentIntentResponse createOrder(PaymentIntentRequest request) throws StripeException {
+        ensureStripeConfigured();
+
         Bill bill = billRepository.findById(request.getBillId())
                 .orElseThrow(() -> new RuntimeException("Bill not found with id: " + request.getBillId()));
 
@@ -79,6 +90,8 @@ public class PaymentService {
 
     @Transactional
     public String verifyPayment(PaymentVerificationRequest request) throws StripeException {
+        ensureStripeConfigured();
+
         Payment payment = paymentRepository.findById(request.getPaymentId())
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
 

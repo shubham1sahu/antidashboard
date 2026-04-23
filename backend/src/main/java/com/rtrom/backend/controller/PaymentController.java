@@ -22,6 +22,8 @@ public class PaymentController {
             return ResponseEntity.ok(paymentService.createOrder(request));
         } catch (StripeException e) {
             return ResponseEntity.badRequest().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(503).build();
         }
     }
 
@@ -36,6 +38,8 @@ public class PaymentController {
             }
         } catch (StripeException e) {
             return ResponseEntity.badRequest().body("Error verifying payment");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(503).body(e.getMessage());
         }
     }
 }

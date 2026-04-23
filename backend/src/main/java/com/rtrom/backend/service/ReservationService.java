@@ -166,8 +166,15 @@ public class ReservationService {
         }
 
         LocalDate today = LocalDate.now();
-        if (!request.reservationDate().isAfter(today)) {
-            throw new BadRequestException("Reservation date must be in the future");
+        if (request.reservationDate().isBefore(today)) {
+            throw new BadRequestException("Reservation date cannot be in the past");
+        }
+
+        if (request.reservationDate().isEqual(today)) {
+            LocalTime now = LocalTime.now();
+            if (request.startTime().isBefore(now.plusMinutes(30))) {
+                throw new BadRequestException("Reservations for today must be made at least 30 minutes in advance");
+            }
         }
     }
 
