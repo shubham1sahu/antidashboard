@@ -6,6 +6,7 @@ import { getTables, updateStatus } from '../../api/tableApi';
 import { createWalkIn } from '../../api/reservationApi';
 import { menuApi } from '../../api/menuApi';
 import { createOrder, getOrders, updateOrderStatus } from '../../api/orderApi';
+import { billService } from '../../api/billService';
 import { categoryApi } from '../../api/categoryApi';
 import useKitchenSocket from '../../hooks/useKitchenSocket';
 
@@ -131,9 +132,18 @@ function WaiterPage() {
     }
   };
 
+  const handleCheckoutTable = async (tableId) => {
+    try {
+      await billService.checkout(tableId);
+      setToast({ type: 'success', message: 'Table checkout triggered successfully.' });
+      await loadData();
+    } catch (error) {
+      setToast({ type: 'error', message: error.response?.data?.error || error.response?.data?.message || 'Checkout failed.' });
+    }
+  };
+
   const currentDraft = activeTable ? (tableDrafts[activeTable.id] || []) : [];
   const draftTotal = currentDraft.reduce((acc, i) => acc + (i.price * i.quantity), 0);
-
   return (
     <DashboardShell
       title="Waiter Dashboard"
@@ -178,7 +188,6 @@ function WaiterPage() {
               </button>
             ))}
           </div>
-        </section>
 
         {/* ── RIGHT SIDE: DYNAMIC PANEL ───────────────────────────────────── */}
         <aside className="bg-white rounded-3xl border border-[color:var(--border)] shadow-[var(--shadow-md)] flex flex-col overflow-hidden">

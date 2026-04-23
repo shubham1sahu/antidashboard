@@ -5,7 +5,32 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 import { paymentService } from '../../api/paymentService';
 import toast from 'react-hot-toast';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const normalizeStripePublishableKey = (value) => {
+  if (!value) return '';
+
+  const trimmed = value.trim();
+  const commentIndex = trimmed.indexOf('#');
+  return commentIndex >= 0 ? trimmed.slice(0, commentIndex).trim() : trimmed;
+};
+
+const isValidStripePublishableKey = (value) => {
+  if (!value || value.includes('...')) return false;
+
+  const lowercase = value.toLowerCase();
+  if (lowercase.includes('replace with actual')) return false;
+
+  return value.startsWith('pk_test_') || value.startsWith('pk_live_');
+};
+
+const getApiErrorMessage = (error, fallback) =>
+  error?.response?.data?.error ||
+  error?.response?.data?.message ||
+  fallback;
+
+const stripePublishableKey = normalizeStripePublishableKey(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const stripePromise = isValidStripePublishableKey(stripePublishableKey)
+  ? loadStripe(stripePublishableKey)
+  : Promise.resolve(null);
 
 const CheckoutForm = ({ clientSecret, paymentId }) => {
   const stripe = useStripe();
@@ -37,7 +62,7 @@ const CheckoutForm = ({ clientSecret, paymentId }) => {
         toast.success("Payment successful!");
         navigate('/customer/menu'); // Or to a success page
       } catch (err) {
-        toast.error("Failed to verify payment with server.");
+        toast.error(getApiErrorMessage(err, "Failed to verify payment with server."));
       } finally {
         setIsProcessing(false);
       }
@@ -81,19 +106,31 @@ const PaymentPage = () => {
   const [clientSecret, setClientSecret] = useState('');
   const [paymentId, setPaymentId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     initiatePayment();
   }, [billId]);
 
   const initiatePayment = async () => {
+    if (!isValidStripePublishableKey(stripePublishableKey)) {
+      const message = 'Stripe publishable key is missing or still a placeholder. Set a real VITE_STRIPE_PUBLISHABLE_KEY in frontend/.env.';
+      setErrorMessage(message);
+      toast.error(message);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
+      setErrorMessage('');
       const res = await paymentService.createOrder(billId);
       setClientSecret(res.clientSecret);
       setPaymentId(res.paymentId);
     } catch (error) {
-      toast.error('Failed to initiate payment');
+      const message = getApiErrorMessage(error, 'Failed to initiate payment');
+      setErrorMessage(message);
+      toast.error(message);
       console.error(error);
     } finally {
       setLoading(false);
@@ -102,7 +139,13 @@ const PaymentPage = () => {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading payment gateway...</div>;
 
-  if (!clientSecret) return <div className="min-h-screen flex items-center justify-center text-red-500">Error loading payment.</div>;
+  if (!clientSecret) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6 text-center text-red-500">
+        {errorMessage || 'Error loading payment.'}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] p-8 text-[var(--text-primary)]">

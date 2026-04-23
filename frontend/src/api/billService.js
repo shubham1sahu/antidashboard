@@ -1,13 +1,18 @@
 import apiClient from './client';
 
 export const billService = {
-  generateBill: async (orderId) => {
-    const response = await apiClient.post(`/bills/${orderId}/generate`);
+  checkout: async (tableId) => {
+    const response = await apiClient.post(`/checkout/${tableId}`);
     return response.data;
   },
   
-  getBillByOrderId: async (orderId) => {
-    const response = await apiClient.get(`/bills/${orderId}`);
+  getBillByTableId: async (tableId) => {
+    const response = await apiClient.get(`/bills/table/${tableId}`);
+    return response.data;
+  },
+
+  getBillById: async (billId) => {
+    const response = await apiClient.get(`/bills/${billId}`);
     return response.data;
   }
 };

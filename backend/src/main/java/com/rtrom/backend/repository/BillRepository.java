@@ -13,6 +13,8 @@ import java.util.Optional;
 public interface BillRepository extends JpaRepository<Bill, Long> {
     Optional<Bill> findByOrderId(Long orderId);
 
+    java.util.Optional<Bill> findByTableIdAndStatus(Long tableId, String status);
+
     @Modifying
     @Query("DELETE FROM Bill b WHERE b.order.user.id = :userId")
     void deleteByOrderUserId(@Param("userId") Long userId);

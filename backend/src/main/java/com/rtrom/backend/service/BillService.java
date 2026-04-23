@@ -3,6 +3,7 @@ package com.rtrom.backend.service;
 import com.rtrom.backend.domain.model.Bill;
 import com.rtrom.backend.domain.model.Order;
 import com.rtrom.backend.dto.BillDto;
+import com.rtrom.backend.exception.ResourceNotFoundException;
 import com.rtrom.backend.repository.BillRepository;
 import com.rtrom.backend.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,55 +20,24 @@ public class BillService {
     private final BillRepository billRepository;
     private final OrderRepository orderRepository;
 
-    @Transactional
-    public BillDto generateBill(Long orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
-
-        // Check if bill already exists
-        return billRepository.findByOrderId(orderId)
+    public BillDto getBillByTableId(Long tableId) {
+        return billRepository.findByTableIdAndStatus(tableId, "GENERATED")
                 .map(this::mapToDto)
-                .orElseGet(() -> {
-                    BigDecimal subtotal = order.getTotalAmount();
-                    if (subtotal == null) subtotal = BigDecimal.ZERO;
-                    
-                    BigDecimal taxRate = new BigDecimal("0.05"); // 5% tax
-                    BigDecimal tax = subtotal.multiply(taxRate);
-                    BigDecimal discount = BigDecimal.ZERO; // Optional discount logic here
-                    BigDecimal grandTotal = subtotal.add(tax).subtract(discount);
-
-                    Bill bill = Bill.builder()
-                            .billNumber("BILL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
-                            .order(order)
-                            .subtotal(subtotal)
-                            .tax(tax)
-                            .discount(discount)
-                            .grandTotal(grandTotal)
-                            .status("GENERATED")
-                            .build();
-
-                    Bill savedBill = billRepository.save(bill);
-                    return mapToDto(savedBill);
-                });
-    }
-
-    public BillDto getBillByOrderId(Long orderId) {
-        return billRepository.findByOrderId(orderId)
-                .map(this::mapToDto)
-                .orElseThrow(() -> new RuntimeException("Bill not found for order id: " + orderId));
+                .orElseThrow(() -> new ResourceNotFoundException("Active bill not found for table id: " + tableId));
     }
     
     public BillDto getBillById(Long billId) {
         return billRepository.findById(billId)
                 .map(this::mapToDto)
-                .orElseThrow(() -> new RuntimeException("Bill not found with id: " + billId));
+                .orElseThrow(() -> new ResourceNotFoundException("Bill not found with id: " + billId));
     }
 
-    private BillDto mapToDto(Bill bill) {
+    public BillDto mapToDto(Bill bill) {
         return BillDto.builder()
                 .id(bill.getId())
                 .billNumber(bill.getBillNumber())
-                .orderId(bill.getOrder().getId())
+                .tableId(bill.getTable().getId())
+                .reservationId(bill.getReservation() != null ? bill.getReservation().getId() : null)
                 .subtotal(bill.getSubtotal())
                 .tax(bill.getTax())
                 .discount(bill.getDiscount())

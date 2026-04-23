@@ -170,7 +170,7 @@ function AdminOrdersPage() {
                     </ul>
                   </td>
                   <td className="px-6 py-4 font-bold text-[color:var(--primary)]">
-                    ${Number(order?.totalAmount || 0).toFixed(2)}
+                    Rs {Number(order?.totalAmount || 0).toFixed(2)}
                   </td>
                   <td className="px-6 py-4 flex flex-col gap-2">
                     <StatusBadge status={order?.status || 'PENDING'} />

@@ -45,7 +45,7 @@ function AnalyticsPage() {
   }
 
   const stats = [
-    { label: 'Total Revenue', value: `$${Number(data?.totalRevenue || 0).toLocaleString()}`, icon: '💰', color: 'bg-green-50 text-green-600' },
+    { label: 'Total Revenue', value: `Rs ${Number(data?.totalRevenue || 0).toLocaleString()}`, icon: '💰', color: 'bg-green-50 text-green-600' },
     { label: 'Total Orders', value: data?.totalOrders || 0, icon: '📦', color: 'bg-blue-50 text-blue-600' },
     { label: 'Reservations', value: data?.totalReservations || 0, icon: '📅', color: 'bg-purple-50 text-purple-600' },
     { label: 'Total Users', value: data?.totalUsers || 0, icon: '👥', color: 'bg-orange-50 text-orange-600' },
@@ -90,9 +90,7 @@ function AnalyticsPage() {
                     className="w-full rounded-t-lg bg-gradient-to-t from-[color:var(--primary)] to-[color:var(--accent)] transition-all duration-500 hover:opacity-80"
                     style={{ height: `${height}%`, minHeight: '4px' }}
                   >
-                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 scale-0 rounded bg-slate-800 px-2 py-1 text-xs text-white transition-all group-hover:scale-100">
-                      ${day.amount}
-                    </div>
+                      Rs {day.amount}
                   </div>
                   <p className="mt-3 text-[10px] font-medium text-[color:var(--text-secondary)] uppercase">
                     {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
@@ -144,7 +142,7 @@ function AnalyticsPage() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-[color:var(--text-secondary)] uppercase tracking-wider">{cat.categoryName}</p>
-                <p className="text-lg font-bold text-[color:var(--primary)]">${Number(cat.revenue).toFixed(2)}</p>
+                <p className="text-lg font-bold text-[color:var(--primary)]">Rs {Number(cat.revenue).toFixed(2)}</p>
               </div>
             </div>
           ))}

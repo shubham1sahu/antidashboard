@@ -13,13 +13,13 @@ public class BillController {
 
     private final BillService billService;
 
-    @PostMapping("/{orderId}/generate")
-    public ResponseEntity<BillDto> generateBill(@PathVariable Long orderId) {
-        return ResponseEntity.ok(billService.generateBill(orderId));
+    @GetMapping("/{id}")
+    public ResponseEntity<BillDto> getBillById(@PathVariable Long id) {
+        return ResponseEntity.ok(billService.getBillById(id));
     }
 
-    @GetMapping("/{orderId}")
-    public ResponseEntity<BillDto> getBillByOrderId(@PathVariable Long orderId) {
-        return ResponseEntity.ok(billService.getBillByOrderId(orderId));
+    @GetMapping("/table/{tableId}")
+    public ResponseEntity<BillDto> getBillByTableId(@PathVariable Long tableId) {
+        return ResponseEntity.ok(billService.getBillByTableId(tableId));
     }
 }

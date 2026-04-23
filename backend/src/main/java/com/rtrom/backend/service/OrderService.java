@@ -79,6 +79,10 @@ public class OrderService {
 
         User user;
         if (reservation != null) {
+            // A confirmed reservation becomes actively occupied once ordering starts.
+            if (table.getStatus() != TableStatus.OCCUPIED) {
+                table.setStatus(TableStatus.OCCUPIED);
+            }
             user = reservation.getUser();
             logger.info("Found reservation id={} for table {}. Associate user: {}", reservation.getId(),
                     table.getTableNumber(), user.getEmail());

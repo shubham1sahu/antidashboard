@@ -40,3 +40,6 @@ Password:- admin123
 ## Notes
 - This is boilerplate only. No business logic has been implemented.
 - Update database and JWT values in `backend/src/main/resources/application.yml` before production use.
+
+## Documentation
+- Customer payment flow and timing: [docs/customer-payment-flow.md](docs/customer-payment-flow.md)
