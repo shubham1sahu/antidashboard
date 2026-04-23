@@ -1,0 +1,36 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: rtrom-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/rtrom_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 5
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        format_sql: true
+  # Flyway removed as per request
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-me-to-a-strong-random-secret}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+    issuer: ${JWT_ISSUER:rtrom-backend}
+
+  websocket:
+    allowed-origins: "http://localhost:5173"
+

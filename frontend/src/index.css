@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #1a1a2e;
+  --primary-light: #16213e;
+  --accent: #e94560;
+  --accent-hover: #c73652;
+  --surface: #ffffff;
+  --surface-alt: #f8f9fc;
+  --border: #e8ecf0;
+  --text-primary: #1a1a2e;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .font-heading {
+    font-family: 'Playfair Display', serif;
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition;
+    background-color: var(--accent);
+  }
+
+  .btn-accent:hover {
+    background-color: var(--accent-hover);
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-semibold transition;
+    border-color: color-mix(in oklab, var(--border) 85%, white);
+    color: var(--text-primary);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition;
+    color: var(--text-secondary);
+  }
+
+  .btn-ghost:hover {
+    background-color: var(--surface-alt);
+    color: var(--text-primary);
+  }
+
+  .input {
+    @apply w-full rounded-md border px-3 py-2.5 text-sm outline-none transition;
+    border-color: var(--border);
+    background: var(--surface);
+  }
+
+  .input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.16);
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium;
+    color: var(--text-primary);
+  }
+
+  .error-text {
+    @apply mt-1 text-xs font-medium;
+    color: var(--error);
+  }
+
+  .hero-pattern {
+    background:
+      linear-gradient(140deg, rgba(26, 26, 46, 0.96), rgba(22, 33, 62, 0.94)),
+      repeating-linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.06) 0,
+        rgba(255, 255, 255, 0.06) 2px,
+        transparent 2px,
+        transparent 24px
+      );
+  }
+
+  .auth-page {
+    background:
+      radial-gradient(circle at 90% 10%, rgba(233, 69, 96, 0.14), transparent 45%),
+      radial-gradient(circle at 20% 80%, rgba(26, 26, 46, 0.12), transparent 40%),
+      var(--surface-alt);
+  }
+}
+
+@layer utilities {
+  .animate-float {
+    animation: floatCard 4.8s ease-in-out infinite;
+  }
+}
+
+@keyframes floatCard {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+body {
+  @apply antialiased;
+}
