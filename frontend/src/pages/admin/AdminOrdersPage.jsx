@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DashboardShell from '../../components/layout/DashboardShell';
-import { getOrders, updateOrderStatus, deleteOrder, deleteOrders } from '../../api/orderApi';
+import { getOrders, updateOrderStatus, deleteOrder } from '../../api/orderApi';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ToastMessage from '../../components/ui/ToastMessage';
 import useKitchenSocket from '../../hooks/useKitchenSocket';
@@ -21,10 +21,9 @@ function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState({ type: 'error', message: '' });
-  const [orderToDelete, setOrderToDelete] = useState(null);
-  const [selectedIds, setSelectedIds] = useState([]);
   const [deleting, setDeleting] = useState(false);
-  const [bulkMode, setBulkMode] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState(null);
+
 
   useEffect(() => {
     loadOrders();
@@ -61,20 +60,13 @@ function AdminOrdersPage() {
   };
 
   const confirmDelete = async () => {
-    if (!orderToDelete && selectedIds.length === 0) return;
+    if (!orderToDelete) return;
     
     try {
       setDeleting(true);
-      if (bulkMode) {
-        await deleteOrders(selectedIds);
-        setToast({ type: 'success', message: `${selectedIds.length} orders deleted successfully.` });
-        setSelectedIds([]);
-        setBulkMode(false);
-      } else if (orderToDelete) {
-        await deleteOrder(orderToDelete.id);
-        setToast({ type: 'success', message: `Order #${orderToDelete.id} deleted successfully.` });
-        setOrderToDelete(null);
-      }
+      await deleteOrder(orderToDelete.id);
+      setToast({ type: 'success', message: `Order #${orderToDelete.id} deleted successfully.` });
+      setOrderToDelete(null);
       loadOrders();
     } catch (error) {
       setToast({ type: 'error', message: error.response?.data?.error || 'Deletion failed.' });
@@ -83,19 +75,7 @@ function AdminOrdersPage() {
     }
   };
 
-  const toggleSelectAll = () => {
-    if (selectedIds.length === orders.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(orders.map(o => o.id));
-    }
-  };
 
-  const toggleSelectOrder = (id) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
 
   return (
     <DashboardShell
@@ -107,17 +87,6 @@ function AdminOrdersPage() {
 
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {selectedIds.length > 0 && (
-            <button 
-              onClick={() => { setBulkMode(true); setOrderToDelete({ id: 'multiple' }); }}
-              className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-red-100 hover:bg-red-700 transition animate-in fade-in slide-in-from-left-4"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              Delete Selected ({selectedIds.length})
-            </button>
-          )}
         </div>
         <div className="text-xs text-slate-500 font-medium bg-slate-100 px-3 py-1.5 rounded-full">
           {orders.length} Total Orders
@@ -129,41 +98,27 @@ function AdminOrdersPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-[color:var(--border)] bg-[color:var(--surface-alt)]">
-                <th className="px-6 py-4 w-10">
-                  <input 
-                    type="checkbox" 
-                    checked={orders.length > 0 && selectedIds.length === orders.length} 
-                    onChange={toggleSelectAll}
-                    className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
-                  />
-                </th>
+
                 <th className="px-6 py-4 font-semibold text-[color:var(--text-secondary)]">Order ID</th>
                 <th className="px-6 py-4 font-semibold text-[color:var(--text-secondary)]">Table</th>
                 <th className="px-6 py-4 font-semibold text-[color:var(--text-secondary)]">Customer</th>
                 <th className="px-6 py-4 font-semibold text-[color:var(--text-secondary)]">Items</th>
                 <th className="px-6 py-4 font-semibold text-[color:var(--text-secondary)]">Total</th>
                 <th className="px-6 py-4 font-semibold text-[color:var(--text-secondary)]">Status</th>
-                <th className="px-6 py-4 font-semibold text-[color:var(--text-secondary)] text-right">Actions</th>
+
               </tr>
             </thead>
             <tbody className="divide-y divide-[color:var(--border)]">
               {loading && orders.length === 0 && (
                 <tr>
-                  <td colSpan="8" className="px-6 py-12 text-center text-[color:var(--text-secondary)]">
+                  <td colSpan="6" className="px-6 py-12 text-center text-[color:var(--text-secondary)]">
                     Loading orders...
                   </td>
                 </tr>
               )}
               {Array.isArray(orders) && orders.map((order) => (
-                <tr key={order?.id} className={`hover:bg-gray-50 transition-colors ${selectedIds.includes(order.id) ? 'bg-slate-50' : ''}`}>
-                  <td className="px-6 py-4">
-                    <input 
-                      type="checkbox" 
-                      checked={selectedIds.includes(order.id)} 
-                      onChange={() => toggleSelectOrder(order.id)}
-                      className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
-                    />
-                  </td>
+                <tr key={order?.id} className="hover:bg-gray-50 transition-colors">
+
                   <td className="px-6 py-4 font-medium text-[color:var(--primary)]">#{order?.id}</td>
                   <td className="px-6 py-4">{order?.table?.tableNumber || 'N/A'}</td>
                   <td className="px-6 py-4">
@@ -197,21 +152,12 @@ function AdminOrdersPage() {
                       ))}
                     </select>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <button 
-                      onClick={() => { setBulkMode(false); setOrderToDelete({ id: order?.id }); }}
-                      className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </td>
+
                 </tr>
               ))}
               {orders.length === 0 && !loading && (
                 <tr>
-                  <td colSpan="8" className="px-6 py-12 text-center text-[color:var(--text-secondary)] italic">
+                  <td colSpan="6" className="px-6 py-12 text-center text-[color:var(--text-secondary)] italic">
                     No orders found.
                   </td>
                 </tr>
@@ -231,18 +177,15 @@ function AdminOrdersPage() {
               </svg>
             </div>
             <h3 className="mb-2 text-xl font-bold text-slate-900">
-              {bulkMode ? 'Bulk Order Deletion' : 'Confirm Order Deletion'}
+              Confirm Order Deletion
             </h3>
             <p className="mb-6 text-slate-600">
-              {bulkMode 
-                ? `Are you sure you want to delete ${selectedIds.length} selected orders?`
-                : <>Are you sure you want to delete <span className="font-semibold text-slate-900">Order #{orderToDelete.id}</span>?</>
-              }
+              Are you sure you want to delete <span className="font-semibold text-slate-900">Order #{orderToDelete.id}</span>?
               {' '}This action cannot be undone and will permanently remove these records.
             </p>
             <div className="flex gap-3">
               <button 
-                onClick={() => { setOrderToDelete(null); setBulkMode(false); }}
+                onClick={() => setOrderToDelete(null)}
                 disabled={deleting}
                 className="flex-1 rounded-xl border border-slate-200 py-3 font-semibold text-slate-700 hover:bg-slate-50 transition"
               >
@@ -253,7 +196,7 @@ function AdminOrdersPage() {
                 disabled={deleting}
                 className="flex-1 rounded-xl bg-red-600 py-3 font-semibold text-white hover:bg-red-700 shadow-lg shadow-red-200 transition disabled:opacity-50"
               >
-                {deleting ? 'Deleting...' : (bulkMode ? 'Delete Selection' : 'Delete Order')}
+                {deleting ? 'Deleting...' : 'Delete Order'}
               </button>
             </div>
           </div>
