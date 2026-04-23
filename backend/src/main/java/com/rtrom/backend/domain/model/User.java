@@ -35,6 +35,12 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    @Column(name = "reset_code")
+    private String resetCode;
+
+    @Column(name = "reset_code_expiry")
+    private java.time.LocalDateTime resetCodeExpiry;
+
     public User() {
     }
 
@@ -93,5 +99,21 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getResetCode() {
+        return resetCode;
+    }
+
+    public void setResetCode(String resetCode) {
+        this.resetCode = resetCode;
+    }
+
+    public java.time.LocalDateTime getResetCodeExpiry() {
+        return resetCodeExpiry;
+    }
+
+    public void setResetCodeExpiry(java.time.LocalDateTime resetCodeExpiry) {
+        this.resetCodeExpiry = resetCodeExpiry;
     }
 }

@@ -45,6 +45,7 @@ public class OrderItem {
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Order getOrder() { return order; }
     public void setOrder(Order order) { this.order = order; }
     public MenuItem getMenuItem() { return menuItem; }

@@ -239,7 +239,7 @@ function extractError(error) {
 }
 
 function minDate() {
-  return new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return new Date().toISOString().slice(0, 10);
 }
 
 function formatTime(time) {

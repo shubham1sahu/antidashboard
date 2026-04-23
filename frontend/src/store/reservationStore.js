@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 
-const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const today = new Date().toISOString().slice(0, 10);
 
 const useReservationStore = create((set) => ({
   reservations: [],
   availableTables: [],
   selectedTable: null,
-  selectedDate: tomorrow,
+  selectedDate: today,
   selectedTime: '19:00',
   selectedEndTime: '21:00',
   guestCount: 2,

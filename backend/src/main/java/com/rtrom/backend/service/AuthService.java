@@ -20,17 +20,20 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
 
     public AuthService(
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
         JwtTokenProvider jwtTokenProvider,
-        AuthenticationManager authenticationManager
+        AuthenticationManager authenticationManager,
+        EmailService emailService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.authenticationManager = authenticationManager;
+        this.emailService = emailService;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -71,5 +74,36 @@ public class AuthService {
 
         String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole());
         return new AuthResponse(token, user.getRole().name());
+    }
+
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User with this email does not exist"));
+
+        // Generate 6-digit code
+        String code = String.format("%06d", new java.util.Random().nextInt(999999));
+        user.setResetCode(code);
+        user.setResetCodeExpiry(java.time.LocalDateTime.now().plusMinutes(15));
+        userRepository.save(user);
+
+        emailService.sendPasswordResetEmail(user.getEmail(), code);
+    }
+
+    public void resetPassword(String email, String code, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User with this email does not exist"));
+
+        if (user.getResetCode() == null || !user.getResetCode().equals(code)) {
+            throw new IllegalArgumentException("Invalid reset code");
+        }
+
+        if (user.getResetCodeExpiry() == null || user.getResetCodeExpiry().isBefore(java.time.LocalDateTime.now())) {
+            throw new IllegalArgumentException("Reset code has expired");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetCode(null);
+        user.setResetCodeExpiry(null);
+        userRepository.save(user);
     }
 }

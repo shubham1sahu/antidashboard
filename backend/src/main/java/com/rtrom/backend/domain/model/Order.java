@@ -47,6 +47,7 @@ public class Order {
     @OneToMany(mappedBy = "order", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bill_id")
     private Bill bill;
@@ -159,6 +160,7 @@ public class Order {
         this.customerName = customerName;
     }
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Bill getBill() {
         return bill;
     }

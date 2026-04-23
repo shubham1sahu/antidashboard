@@ -28,18 +28,22 @@ public class AnalyticsService {
     public AnalyticsResponse getDashboardAnalytics() {
         List<Order> allOrders = orderRepository.findAllWithDetails();
         
+        List<Order> paidOrders = allOrders.stream()
+                .filter(o -> com.rtrom.backend.domain.model.OrderStatus.PAID.equals(o.getStatus()))
+                .collect(Collectors.toList());
+
         // Totals
-        BigDecimal totalRevenue = allOrders.stream()
+        BigDecimal totalRevenue = paidOrders.stream()
                 .map(Order::getTotalAmount)
                 .filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         
-        long totalOrders = allOrders.size();
-        long totalReservations = reservationRepository.count();
+        long totalOrders = paidOrders.size();
+        long totalReservations = reservationRepository.countByStatus(com.rtrom.backend.domain.model.ReservationStatus.COMPLETED);
         long totalUsers = userRepository.count();
 
         // Revenue Trend (Last 7 days)
-        Map<LocalDate, BigDecimal> revenueMap = allOrders.stream()
+        Map<LocalDate, BigDecimal> revenueMap = paidOrders.stream()
                 .filter(o -> o.getCreatedAt() != null)
                 .collect(Collectors.groupingBy(
                         o -> o.getCreatedAt().toLocalDate(),
@@ -56,7 +60,7 @@ public class AnalyticsService {
         Map<String, Long> itemSales = new HashMap<>();
         Map<String, BigDecimal> categoryRevenue = new HashMap<>();
 
-        for (Order order : allOrders) {
+        for (Order order : paidOrders) {
             for (OrderItem item : order.getItems()) {
                 if (item.getMenuItem() != null) {
                     String itemName = item.getMenuItem().getName();

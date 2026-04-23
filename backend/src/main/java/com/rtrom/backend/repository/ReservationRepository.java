@@ -55,6 +55,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     long countByUserEmail(String email);
 
     long countByUserEmailAndStatus(String email, ReservationStatus status);
+    
+    long countByStatus(ReservationStatus status);
 
     @Query("SELECT SUM(r.guestCount) FROM Reservation r WHERE r.user.email = :email AND r.status = 'COMPLETED'")
     Long sumGuestCountByUserEmail(@Param("email") String email);

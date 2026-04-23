@@ -7,6 +7,8 @@ import com.rtrom.backend.domain.model.Order;
 import com.rtrom.backend.domain.model.OrderStatus;
 import com.rtrom.backend.domain.model.Payment;
 import com.rtrom.backend.domain.model.*;
+import com.rtrom.backend.domain.model.TableStatus;
+import com.rtrom.backend.domain.model.ReservationStatus;
 import com.rtrom.backend.exception.BadRequestException;
 import com.rtrom.backend.exception.ResourceNotFoundException;
 import com.rtrom.backend.dto.PaymentIntentRequest;

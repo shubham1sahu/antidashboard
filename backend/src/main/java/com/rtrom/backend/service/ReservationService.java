@@ -177,8 +177,8 @@ public class ReservationService {
         }
 
         LocalDate today = LocalDate.now();
-        if (!request.reservationDate().isAfter(today)) {
-            throw new BadRequestException("Reservation date must be in the future");
+        if (request.reservationDate().isBefore(today)) {
+            throw new BadRequestException("Reservation date cannot be in the past");
         }
     }
 

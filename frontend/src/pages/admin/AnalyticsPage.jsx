@@ -87,10 +87,10 @@ function AnalyticsPage() {
               return (
                 <div key={idx} className="group relative flex flex-1 flex-col items-center">
                   <div 
-                    className="w-full rounded-t-lg bg-gradient-to-t from-[color:var(--primary)] to-[color:var(--accent)] transition-all duration-500 hover:opacity-80"
-                    style={{ height: `${height}%`, minHeight: '4px' }}
+                    className="w-full rounded-t-lg bg-gradient-to-t from-[color:var(--primary)] to-[color:var(--accent)] transition-all duration-500 hover:opacity-80 flex items-start justify-center pt-1 text-[10px] font-bold text-white overflow-hidden"
+                    style={{ height: `${height}%`, minHeight: day.amount > 0 ? '24px' : '2px' }}
                   >
-                      Rs {day.amount}
+                      {day.amount > 0 ? `Rs ${day.amount}` : ''}
                   </div>
                   <p className="mt-3 text-[10px] font-medium text-[color:var(--text-secondary)] uppercase">
                     {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
