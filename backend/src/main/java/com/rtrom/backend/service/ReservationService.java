@@ -16,6 +16,8 @@ import com.rtrom.backend.repository.ReservationRepository;
 import com.rtrom.backend.repository.UserRepository;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+
 import java.util.EnumSet;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -120,8 +122,8 @@ public class ReservationService {
         reservation.setUser(walkInUser);
         reservation.setTable(table);
         reservation.setReservationDate(LocalDate.now());
-        reservation.setStartTime(LocalTime.now());
-        reservation.setEndTime(LocalTime.now().plusHours(2)); // Default 2 hours occupancy
+        reservation.setStartTime(LocalTime.now().truncatedTo(ChronoUnit.SECONDS));
+        reservation.setEndTime(LocalTime.now().plusHours(2).truncatedTo(ChronoUnit.SECONDS)); // Default 2 hours occupancy
         reservation.setGuestCount(request.getGuestCount());
         reservation.setSpecialRequests("Walk-in: " + (request.getCustomerName() != null ? request.getCustomerName() : "Anonymous"));
         reservation.setStatus(ReservationStatus.CONFIRMED);

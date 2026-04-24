@@ -11,6 +11,9 @@ import org.springframework.context.annotation.Lazy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -144,8 +147,13 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<Order> getAllOrders() {
-        return orderRepository.findAllWithDetails();
+    public List<Order> getAllOrders(LocalDate date) {
+        if (date == null) {
+            return orderRepository.findAllWithDetails();
+        }
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = date.atTime(LocalTime.MAX);
+        return orderRepository.findAllByCreatedAtBetween(start, end);
     }
 
     @Transactional

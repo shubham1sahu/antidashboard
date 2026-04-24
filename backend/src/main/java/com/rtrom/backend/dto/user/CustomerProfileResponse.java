@@ -46,5 +46,6 @@ public record CustomerProfileResponse(
     long totalGuestsHosted,
     String favoriteTable,
     String loyaltyTier,
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     LocalDateTime memberSince
 ) {}

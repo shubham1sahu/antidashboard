@@ -19,6 +19,12 @@ public interface KitchenOrderTicketRepository extends JpaRepository<KitchenOrder
     @Query("SELECT k FROM KitchenOrderTicket k JOIN FETCH k.order o JOIN FETCH o.table t ORDER BY k.createdAt ASC")
     List<KitchenOrderTicket> findAllByOrderByCreatedAtAsc();
 
+    @Query("SELECT k FROM KitchenOrderTicket k JOIN FETCH k.order o JOIN FETCH o.table t WHERE k.createdAt >= :start AND k.createdAt <= :end ORDER BY k.createdAt ASC")
+    List<KitchenOrderTicket> findAllByCreatedAtBetweenOrderByCreatedAtAsc(@Param("start") java.time.LocalDateTime start, @Param("end") java.time.LocalDateTime end);
+
+    @Query("SELECT k FROM KitchenOrderTicket k JOIN FETCH k.order o JOIN FETCH o.table t WHERE k.kitchenStatus = :status AND k.createdAt >= :start AND k.createdAt <= :end ORDER BY k.createdAt ASC")
+    List<KitchenOrderTicket> findByKitchenStatusAndCreatedAtBetweenOrderByCreatedAtAsc(@Param("status") KitchenTicketStatus status, @Param("start") java.time.LocalDateTime start, @Param("end") java.time.LocalDateTime end);
+
     Optional<KitchenOrderTicket> findByOrderId(Long orderId);
 
     @Query("SELECT k FROM KitchenOrderTicket k WHERE k.order.table.id = :tableId AND k.kitchenStatus != 'SERVED'")

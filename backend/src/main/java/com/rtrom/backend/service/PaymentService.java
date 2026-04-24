@@ -28,6 +28,8 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
 
 @Service
 @RequiredArgsConstructor
@@ -158,7 +160,8 @@ public class PaymentService {
 
         if ("succeeded".equals(paymentIntent.getStatus())) {
             payment.setStatus(PaymentStatus.SUCCESS);
-            payment.setPaidAt(LocalDateTime.now());
+            payment.setPaidAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+
 
             // Mark bill and orders as PAID
             Bill bill = payment.getBill();

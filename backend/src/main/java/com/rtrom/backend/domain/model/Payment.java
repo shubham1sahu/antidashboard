@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
 import com.rtrom.backend.domain.enums.PaymentMethod;
 import com.rtrom.backend.domain.enums.PaymentStatus;
 
@@ -67,7 +69,7 @@ public class Payment {
     @PrePersist
     void prePersist() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         }
     }
 

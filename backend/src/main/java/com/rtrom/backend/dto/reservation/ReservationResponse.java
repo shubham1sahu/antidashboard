@@ -10,7 +10,9 @@ public record ReservationResponse(
     Long tableId,
     String tableNumber,
     LocalDate reservationDate,
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "HH:mm:ss")
     LocalTime startTime,
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "HH:mm:ss")
     LocalTime endTime,
     Integer guestCount,
     String status,

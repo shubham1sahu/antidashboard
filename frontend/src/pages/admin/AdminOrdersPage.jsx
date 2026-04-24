@@ -25,12 +25,13 @@ function AdminOrdersPage() {
   const [orderToDelete, setOrderToDelete] = useState(null);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
 
 
   useEffect(() => {
     loadOrders();
     // WebSocket real-time updates handled below
-  }, []);
+  }, [selectedDate]);
 
   const handleUpdate = () => {
     console.log('[Admin] Real-time order update received');
@@ -41,7 +42,8 @@ function AdminOrdersPage() {
 
   const loadOrders = async () => {
     try {
-      const data = await getOrders();
+      setLoading(true);
+      const data = await getOrders(selectedDate);
       setOrders(Array.isArray(data) ? data : []);
     } catch (error) {
       setToast({ type: 'error', message: 'Failed to fetch orders.' });
@@ -112,7 +114,18 @@ function AdminOrdersPage() {
               placeholder="Search Order ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 rounded-xl border border-[color:var(--border)] bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)] shadow-sm transition w-48"
+              className="pl-10 pr-4 py-2 rounded-xl border border-[color:var(--border)] bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)] shadow-sm transition w-40"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-bold text-[color:var(--text-secondary)] uppercase tracking-wider" htmlFor="admin-order-date">Date</label>
+            <input
+              id="admin-order-date"
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="rounded-xl border border-[color:var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[color:var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)] shadow-sm transition"
             />
           </div>
         </div>

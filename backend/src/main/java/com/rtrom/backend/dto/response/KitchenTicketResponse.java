@@ -13,10 +13,13 @@ public class KitchenTicketResponse {
     private Long tableId;
     private KitchenTicketStatus kitchenStatus;
     private String assignedTo;
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime startedAt;
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime completedAt;
     private Integer estimatedMinutes;
     private String notes;
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
     private List<KitchenOrderItemDetail> items;
     private String specialInstructions;

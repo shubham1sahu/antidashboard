@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,15 +71,18 @@ public class KitchenService {
     public List<KitchenTicketResponse> getAllTickets(String statusFilter) {
         List<KitchenOrderTicket> tickets;
 
+        LocalDateTime startOfDay = LocalDateTime.now().with(LocalTime.MIN);
+        LocalDateTime endOfDay = LocalDateTime.now().with(LocalTime.MAX);
+
         if (statusFilter != null && !statusFilter.isBlank()) {
             try {
                 KitchenTicketStatus status = KitchenTicketStatus.valueOf(statusFilter.toUpperCase());
-                tickets = kitchenTicketRepository.findByKitchenStatusOrderByCreatedAtAsc(status);
+                tickets = kitchenTicketRepository.findByKitchenStatusAndCreatedAtBetweenOrderByCreatedAtAsc(status, startOfDay, endOfDay);
             } catch (IllegalArgumentException e) {
                 throw new BadRequestException("Invalid kitchen status filter: " + statusFilter);
             }
         } else {
-            tickets = kitchenTicketRepository.findAllByOrderByCreatedAtAsc();
+            tickets = kitchenTicketRepository.findAllByCreatedAtBetweenOrderByCreatedAtAsc(startOfDay, endOfDay);
         }
 
         return tickets.stream().map(this::mapToResponse).collect(Collectors.toList());
@@ -107,7 +113,8 @@ public class KitchenService {
         }
 
         ticket.setKitchenStatus(KitchenTicketStatus.IN_PROGRESS);
-        ticket.setStartedAt(LocalDateTime.now());
+        ticket.setStartedAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+
 
         KitchenOrderTicket saved = kitchenTicketRepository.save(ticket);
 
@@ -143,7 +150,8 @@ public class KitchenService {
         }
 
         ticket.setKitchenStatus(KitchenTicketStatus.READY);
-        ticket.setCompletedAt(LocalDateTime.now());
+        ticket.setCompletedAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+
 
         KitchenOrderTicket saved = kitchenTicketRepository.save(ticket);
 

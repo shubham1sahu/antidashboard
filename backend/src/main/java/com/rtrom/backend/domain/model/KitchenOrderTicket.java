@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
@@ -46,7 +48,7 @@ public class KitchenOrderTicket {
 
     @PrePersist
     void onCreate() {
-        createdAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         if (kitchenStatus == null) {
             kitchenStatus = KitchenTicketStatus.RECEIVED;
         }

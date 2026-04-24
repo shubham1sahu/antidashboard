@@ -5,8 +5,10 @@ export async function createOrder(payload) {
   return response.data;
 }
 
-export async function getOrders() {
-  const response = await apiClient.get('/orders');
+export async function getOrders(date) {
+  const response = await apiClient.get('/orders', {
+    params: { date }
+  });
   return response.data;
 }
 

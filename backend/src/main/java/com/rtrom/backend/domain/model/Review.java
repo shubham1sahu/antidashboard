@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
 
 @Entity
 @Table(name = "reviews")
@@ -38,7 +40,7 @@ public class Review {
     @PrePersist
     void prePersist() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         }
     }
 

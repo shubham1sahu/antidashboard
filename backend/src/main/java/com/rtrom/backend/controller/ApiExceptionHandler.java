@@ -55,6 +55,6 @@ public class ApiExceptionHandler {
     }
 
     private ResponseEntity<ApiErrorResponse> buildError(HttpStatus status, String message) {
-        return ResponseEntity.status(status).body(new ApiErrorResponse(message, status.value(), LocalDateTime.now()));
+        return ResponseEntity.status(status).body(new ApiErrorResponse(message, status.value(), LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS)));
     }
 }

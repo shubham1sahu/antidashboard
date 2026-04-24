@@ -51,9 +51,10 @@ function WaiterPage() {
 
   const loadData = async () => {
     try {
+      const today = new Date().toISOString().slice(0, 10);
       const [tableData, orderData, menuData, categoryData] = await Promise.all([
         getTables(),
-        getOrders(),
+        getOrders(today),
         menuApi.getAllMenuItems(true),
         categoryApi.getAllCategories()
       ]);

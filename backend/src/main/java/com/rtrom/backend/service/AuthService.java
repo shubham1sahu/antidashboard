@@ -11,6 +11,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -83,7 +85,8 @@ public class AuthService {
         // Generate 6-digit code
         String code = String.format("%06d", new java.util.Random().nextInt(999999));
         user.setResetCode(code);
-        user.setResetCodeExpiry(java.time.LocalDateTime.now().plusMinutes(15));
+        user.setResetCodeExpiry(LocalDateTime.now().plusMinutes(15).truncatedTo(ChronoUnit.SECONDS));
+
         userRepository.save(user);
 
         emailService.sendPasswordResetEmail(user.getEmail(), code);
@@ -97,7 +100,8 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid reset code");
         }
 
-        if (user.getResetCodeExpiry() == null || user.getResetCodeExpiry().isBefore(java.time.LocalDateTime.now())) {
+        if (user.getResetCodeExpiry() == null || user.getResetCodeExpiry().isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))) {
+
             throw new IllegalArgumentException("Reset code has expired");
         }
 
